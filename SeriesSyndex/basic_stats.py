@@ -47,9 +47,23 @@ class BasicStatsEvaluator:
         Returns:
             dict: Mean value of each attribute
         '''
-
+        running_mean = None
+        num_samples = 0
 
         for batch in dataloader:
-            print(batch)
+            static_vars = batch[0].item()
+            temporal_vars = batch[1].item()
+            num_batch_samples = static_vars.shape[0]
+
+            batch_mean = np.mean(temporal_vars, (0, 1))
+            
+            if running_mean is None:
+                running_mean = batch_mean
+            else:
+                #TO DO - Solve the problem of overflow in larger datasets
+                running_mean = (num_samples*running_mean + batch_mean)/(num_samples+num_batch_samples)
+            
+            num_samples += num_batch_samples
+            # print(batch)
         
         return np.array([0])

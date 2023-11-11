@@ -67,7 +67,7 @@ class BasicStatsEvaluator:
             else:
                 #TO DO - Solve the problem of overflow in larger datasets
                 running_mean = (num_samples*running_mean + batch_mean)/(num_samples+num_batch_samples)
-                running_mean_sq = (num_samples*running_mean_sq + batch_mean)/(num_samples+num_batch_samples)
+                running_mean_sq = (num_samples*running_mean_sq + batch_mean_sq)/(num_samples+num_batch_samples)
             
             num_samples += num_batch_samples
             # print(batch)

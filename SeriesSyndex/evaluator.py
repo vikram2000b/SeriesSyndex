@@ -1,8 +1,13 @@
 from SeriesSyndex.basic_stats import BasicStatsEvaluator
+from SeriesSyndex.pmse import pMSEEvaluator
 
 class Evaluator:
-    def __init__(self, real_dataset):
+    def __init__(self, real_dataset, num_features):
         self.real_dataset = real_dataset
+        self.num_features = num_features
+
+        self.stats_evaluator = BasicStatsEvaluator(real_dataset)
+        self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features)
 
     def calibrate(self, portion_size = 0.2, num_pairs = 1):
         '''
@@ -17,7 +22,19 @@ class Evaluator:
         pass
 
     def evaluate(self, synthetic_data):
-        #TODO
-        pass
+        
+        overall_score = 0
+        stats_score = self.stats_evaluator(synthetic_data)
+        overall_score += stats_score
+
+        pmse_score = self.pmse_evaluator(synthetic_data)
+        overall_score += pmse_score
+
+        # TODO
+        return {
+            "score": overall_score,
+            "basic_stats_score": stats_score,
+            "pmse_score": pmse_score
+        }
 
 

@@ -38,9 +38,9 @@ class BasicStatsEvaluator:
         #print('1:', score)
         return score
 
-    def get_mean(self, dataloader):
+    def get_mean_std(self, dataloader):
         '''
-        Function to get mean of the attributes of a dataset.
+        Function to get mean and standard deviation of the attributes of a dataset.
         Args:
             dataloader (pytorch DataLoader): The dataloader of the dataset for which the means are required.
         
@@ -48,22 +48,31 @@ class BasicStatsEvaluator:
             dict: Mean value of each attribute
         '''
         running_mean = None
+        running_mean_sq = None
         num_samples = 0
 
         for batch in dataloader:
             static_vars = batch[0].item()
             temporal_vars = batch[1].item()
+            temporal_vars_sq = np.square(temporal_vars)
+
             num_batch_samples = static_vars.shape[0]
 
             batch_mean = np.mean(temporal_vars, (0, 1))
-            
+            batch_mean_sq = np.mean(temporal_vars_sq, (0, 1))
+
             if running_mean is None:
                 running_mean = batch_mean
+                running_mean_sq = batch_mean
             else:
                 #TO DO - Solve the problem of overflow in larger datasets
                 running_mean = (num_samples*running_mean + batch_mean)/(num_samples+num_batch_samples)
+                running_mean_sq = (num_samples*running_mean_sq + batch_mean)/(num_samples+num_batch_samples)
             
             num_samples += num_batch_samples
             # print(batch)
         
-        return np.array([0])
+        final_mean = running_mean
+        final_std = np.sqrt(running_mean_sq - np.square(running_mean))
+
+        return final_mean, final_std

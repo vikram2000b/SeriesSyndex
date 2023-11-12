@@ -4,7 +4,7 @@ from torch import nn
 from torch.utils.data import DataLoader, random_split
 
 from SeriesSyndex.data_utils import pMSEDataset
-from models import LSTMClassifier
+from SeriesSyndex.models import LSTMClassifier
 
 
 class pMSEEvaluator:

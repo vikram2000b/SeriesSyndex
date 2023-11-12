@@ -14,7 +14,8 @@ class SupportCoverageEvaluator:
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
-
+        self.num_bins = num_bins
+        
         self.temporal_vars_min, self.temporal_vars_max = self.get_real_data_range()
 
         self.temporal_vars_cut_offs, self.real_data_coverage = self.get_real_data_coverage()
@@ -22,12 +23,13 @@ class SupportCoverageEvaluator:
     def get_real_data_range(self):
         temp_temporal_vars_min, temp_temporal_vars_max = None, None
 
-        real_loader = DataLoader(self.real_dataset, num_workers=self.num_workers, 
+        real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
                                  batch_size=self.batch_size)
         
         for batch in real_loader:
-            static_vars = batch[0].item()
-            temporal_vars = batch[1].item()
+#             print(batch[0].size())
+            static_vars = batch[0].numpy()
+            temporal_vars = batch[1].numpy()
 
             batch_temporal_vars_min = np.min(temporal_vars, (0, 1))
             if temp_temporal_vars_min is None:
@@ -44,7 +46,7 @@ class SupportCoverageEvaluator:
         return temp_temporal_vars_min, temp_temporal_vars_max
 
     def get_real_data_coverage(self):
-        real_loader = DataLoader(self.real_dataset, num_workers=self.num_workers, 
+        real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
                                  batch_size=self.batch_size)
         
         temporal_vars_cut_offs = {}
@@ -57,12 +59,12 @@ class SupportCoverageEvaluator:
             temporal_vars_cut_offs[f'temporal_var_{i+1}'] = bin_cut_offs.tolist()
 
         for batch in real_loader:
-            static_vars = batch[0].item()
-            temporal_vars = batch[1].item()
+            static_vars = batch[0].numpy()
+            temporal_vars = batch[1].numpy()
 
             for i in range(len(temporal_vars_cut_offs.keys())):
                 # Initialize counts for each bucket
-                counts = [0] * 20
+                counts = np.array([0] * 20)
 
                 temporal_var_i = temporal_vars[:, :, i]
 
@@ -71,6 +73,7 @@ class SupportCoverageEvaluator:
 
                 # Update counts
                 unique, counts_per_bucket = np.unique(binned_values, return_counts=True)
+#                 print(type(unique))
                 counts[unique - 1] += counts_per_bucket
 
                 temporal_vars_counts[f'temporal_var_{i}'] = counts
@@ -80,18 +83,18 @@ class SupportCoverageEvaluator:
     def evaluate(self, synthetic_dataset):
         scaling_factor = len(self.real_dataset)/len(synthetic_dataset)
 
-        syn_loader = DataLoader(synthetic_dataset, num_workers=self.num_workers,
+        syn_loader = DataLoader(synthetic_dataset, #num_workers=self.num_workers,
                                 batch_size=self.batch_size)    
 
         temporal_vars_counts = {}
 
         for batch in syn_loader:
-            static_vars = batch[0].item()
-            temporal_vars = batch[1].item()
+            static_vars = batch[0].numpy()
+            temporal_vars = batch[1].numpy()
 
             for i in range(len(self.temporal_vars_cut_offs.keys())):
                 # Initialize counts for each bucket
-                counts = [0] * 20
+                counts = np.array([0] * 20)
 
                 temporal_var_i = temporal_vars[:, :, i]
 
@@ -100,14 +103,15 @@ class SupportCoverageEvaluator:
 
                 # Update counts
                 unique, counts_per_bucket = np.unique(binned_values, return_counts=True)
-                counts[unique - 1] += counts_per_bucket
+#                 print(unique)
+                counts[(unique[unique<=self.num_bins]) - 1] += counts_per_bucket[unique<=self.num_bins]
 
                 temporal_vars_counts[f'temporal_var_{i}'] = counts 
 
         temporal_vars_coverage = []
 
         for i in range(len(temporal_vars_counts.keys())):
-            temp_var_i_coverage = np.array(self.real_data_coverage[[f'temporal_var_{i}']])/(np.array(self.temporal_vars_counts[[f'temporal_var_{i}']])+1e-6)
+            temp_var_i_coverage = np.array(temporal_vars_counts[f'temporal_var_{i}'])/(np.array(self.real_data_coverage[f'temporal_var_{i}'])+1e-6)
             temp_var_i_coverage *= scaling_factor
             temp_var_i_coverage = np.mean(np.clip(temp_var_i_coverage, 0,  2))
 

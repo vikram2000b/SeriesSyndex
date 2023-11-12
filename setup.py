@@ -9,8 +9,8 @@ setup(
     author_email='vikram2000b@gmail.com',
     license='BSD 2-clause',
     packages=['SeriesSyndex'],
-    install_requires=['numpy',                     
-                      ],
+    install_requires=['numpy', 'torch',                   
+                      'POT'],
 
     classifiers=[
         'Development Status :: 1 - Planning',

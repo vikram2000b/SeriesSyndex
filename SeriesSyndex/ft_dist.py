@@ -1,6 +1,6 @@
 import numpy as np
 from torch.utils.data import DataLoader
-from scipy.stats import wasserstein_distance
+import ot
 
 class FTDistEvaluator:
     def __init__(self, real_dataset, num_workers = 2, batch_size = 256):
@@ -24,9 +24,9 @@ class FTDistEvaluator:
         Returns:
             np.float: Score for this evaluation
         '''
-        real_loader = DataLoader(self.real_dataset, num_workers=self.num_workers, 
+        real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
                                  batch_size=self.batch_size)
-        syn_loader = DataLoader(synthetic_dataset, num_workers=self.num_workers,
+        syn_loader = DataLoader(synthetic_dataset, #num_workers=self.num_workers,
                                 batch_size=self.batch_size)
         
         eval_batch_num = 0
@@ -40,8 +40,8 @@ class FTDistEvaluator:
             if  eval_batch_num < num_eval_batches:
                 #accumulate temporal variable batches for evaluation
                 eval_batch_num += 1
-                real_eval_batches.append(real_batch[1].item())
-                syn_eval_batches.append(syn_batch[1].item())
+                real_eval_batches.append(real_batch[1].numpy())
+                syn_eval_batches.append(syn_batch[1].numpy())
                 eval_batch_num += 1
             else:
                 real_eval_batch = np.concatenate(real_eval_batches)
@@ -56,6 +56,7 @@ class FTDistEvaluator:
                     #separating the real and imaginary parts of fourier transformed ith temporal variable
                     real_eval_batch_real = np.real(real_eval_batch_ft[:, :, i])
                     real_eval_batch_imag = np.imag(real_eval_batch_ft[:, :, i])
+#                     print(real_eval_batch_real.shape)
 
                     syn_eval_batch_real = np.real(syn_eval_batch_ft[:, :, i])
                     syn_eval_batch_imag = np.imag(syn_eval_batch_ft[:, :, i])
@@ -65,7 +66,7 @@ class FTDistEvaluator:
                     distribution_syn = np.column_stack((syn_eval_batch_real.flatten(), syn_eval_batch_imag.flatten()))
 
                     # Calculate the 2D Wasserstein distance
-                    wass_dist[i] = wasserstein_distance(distribution_real, distribution_syn)
+                    wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn)
 
                 num_eval_batch_samples = real_eval_batch.shape[0]
 
@@ -77,8 +78,8 @@ class FTDistEvaluator:
                     num_samples += num_eval_batch_samples
 
                 eval_batch_num = 0
-                real_eval_batches = [real_batch[1].item()]
-                syn_eval_batches = [syn_batch[1].item()]
+                real_eval_batches = [real_batch[1].numpy()]
+                syn_eval_batches = [syn_batch[1].numpy()]
 
         #TO DO - Add calibration to return a score
         return running_wass_dist_mean

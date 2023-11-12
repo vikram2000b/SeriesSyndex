@@ -24,10 +24,10 @@ class Evaluator:
     def evaluate(self, synthetic_data):
         
         overall_score = 0
-        stats_score = self.stats_evaluator(synthetic_data)
+        stats_score = self.stats_evaluator.evaluate(synthetic_data)
         overall_score += stats_score
 
-        pmse_score = self.pmse_evaluator(synthetic_data)
+        pmse_score = self.pmse_evaluator.evaluate(synthetic_data)
         overall_score += pmse_score
 
         # TODO

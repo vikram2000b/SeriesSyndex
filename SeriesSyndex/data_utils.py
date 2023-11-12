@@ -10,7 +10,10 @@ class pMSEDataset(Dataset):
 
     def __getitem__(self, index):
         if(index < self.real_dataset_len):
-            return self.real_dataset[index], 0
+            return self.real_dataset[index], 0.
         else:
-            return self.synthetic_dataset[index], 1
+            return self.synthetic_dataset[index-self.real_dataset_len], 1.
+        
+    def __len__(self):
+        return self.real_dataset_len + self.synthetic_dataset_len
         

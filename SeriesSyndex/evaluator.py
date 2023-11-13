@@ -29,9 +29,9 @@ class Evaluator:
         logger.info("Creating the ML Efficacy Evaluator")
         self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, logger=logger, debug_logger=debug_logger)
         logger.info("Creating the Support Coverage Evaluator")
-        self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset, logger=logger, debug_logger=debug_logger)
+        self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset)
         logger.info("Creating the Fourier Transform Distance Evaluator")
-        self.ft_dist_evaluator = FTDistEvaluator(real_dataset, logger=logger, debug_logger=debug_logger)
+        self.ft_dist_evaluator = FTDistEvaluator(real_dataset)
 
     def calibrate(self, portion_size = 0.2, num_pairs = 1):
         '''
@@ -54,13 +54,13 @@ class Evaluator:
         wass_dists = []
 
         for i in range(num_pairs):
-            shuffled_indices_1 = np.random.shuffle(indices)
-            subset_indices_1 = shuffled_indices_1[:subset_size]
+            np.random.shuffle(indices)
+            subset_indices_1 = indices[:subset_size]
 
             subset_1 = Subset(self.real_dataset, subset_indices_1)
 
-            shuffled_indices_2 = np.random.shuffle(indices)
-            subset_indices_2 = shuffled_indices_2[:subset_size]
+            np.random.shuffle(indices)
+            subset_indices_2 = indices[:subset_size]
 
             subset_2 = Subset(self.real_dataset, subset_indices_2)
 

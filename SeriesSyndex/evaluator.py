@@ -55,12 +55,12 @@ class Evaluator:
 
         for i in range(num_pairs):
             shuffled_indices_1 = np.random.shuffle(indices)
-            subset_indices_1 = indices[:subset_size]
+            subset_indices_1 = shuffled_indices_1[:subset_size]
 
             subset_1 = Subset(self.real_dataset, subset_indices_1)
 
             shuffled_indices_2 = np.random.shuffle(indices)
-            subset_indices_2 = indices[:subset_size]
+            subset_indices_2 = shuffled_indices_2[:subset_size]
 
             subset_2 = Subset(self.real_dataset, subset_indices_2)
 

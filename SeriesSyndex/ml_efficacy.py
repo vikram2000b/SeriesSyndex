@@ -8,7 +8,7 @@ from SeriesSyndex.models import LSTMRegressor, TCNRegressor
 from SeriesSyndex.data_utils import MLEfficacyDataset
 
 class MLEfficacyEvaluator:
-    def __init__(self, real_dataset, num_feature, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
+    def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128, target_feature = 0,
                  num_channels = 64, kernel_size = 3,
                  model_type = 'TCN'):
@@ -16,7 +16,7 @@ class MLEfficacyEvaluator:
         Constructor for ML Efficacy Evaluator. 
         Args:
             real_dataset (torch Dataset): The real dataset for comparison.
-            num_feature (int): Number of temporal/series features in the data
+            num_features (int): Number of temporal/series features in the data
             lstm_hidden_size (int): Hidden Size for LSTM Model, which will be used calculate ML Efficacy
             num_layers (int): Number of layers for LSTM Model.
             num_loader_workers (int): Number of workers to use for data loaders
@@ -38,7 +38,7 @@ class MLEfficacyEvaluator:
         self.batch_size = batch_size
         self.lstm_hidden_size = lstm_hidden_size
         self.num_layers = num_layers
-        self.num_feature = num_feature
+        self.num_features = num_features
         self.target_feature = target_feature
         self.model_type = model_type
         self.logger = logger
@@ -63,11 +63,11 @@ class MLEfficacyEvaluator:
         self.debug_logger.info("Initiating the prediction model for real data.")
         self.debug_logger.debug(f"Model type: {self.model_type}")
         if self.model_type == 'LSTM':
-            real_model = LSTMRegressor(input_size=self.num_feature, 
+            real_model = LSTMRegressor(input_size=self.num_features, 
                                         hidden_size=self.lstm_hidden_size,
                                         num_layers=self.num_layers)
         elif self.model_type == 'TCN':
-            real_model = TCNRegressor(input_size=self.num_feature, num_channels=self.num_channels,
+            real_model = TCNRegressor(input_size=self.num_features, num_channels=self.num_channels,
                                       kernel_size = self.kernel_size, num_layers = self.num_layers)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")
@@ -109,11 +109,11 @@ class MLEfficacyEvaluator:
         self.debug_logger.info("Initiating the prediction model for synthetic data.")
         self.debug_logger.debug(f"Model type: {self.model_type}")
         if self.model_type == 'LSTM':
-            syn_model = LSTMRegressor(input_size=self.num_feature, 
+            syn_model = LSTMRegressor(input_size=self.num_features, 
                                         hidden_size=self.lstm_hidden_size,
                                         num_layers=self.num_layers)
         elif self.model_type == 'TCN':
-            syn_model = TCNRegressor(input_size=self.num_feature, num_channels=self.num_channels,
+            syn_model = TCNRegressor(input_size=self.num_features, num_channels=self.num_channels,
                                       kernel_size = self.kernel_size, num_layers = self.num_layers)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")

@@ -27,7 +27,7 @@ class Evaluator:
         logger.info("Creating the pMSE Evaluator")
         self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, debug_logger=debug_logger)
         logger.info("Creating the ML Efficacy Evaluator")
-        self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_feature=self.num_features, logger=logger, debug_logger=debug_logger)
+        self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, logger=logger, debug_logger=debug_logger)
         logger.info("Creating the Support Coverage Evaluator")
         self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset)
         logger.info("Creating the Fourier Transform Distance Evaluator")

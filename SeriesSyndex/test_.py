@@ -110,37 +110,37 @@ def test_ml_eff_zeros(init_vars):
 	assert score is not None
 
 def test_sup_cov_equal(init_vars):
-	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0])
+	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0],logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = sup_cov_evaluator.evaluate(init_vars[4])
 
 	assert score is not None
 
 def test_sup_cov_unequal(init_vars):
-	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0])
+	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = sup_cov_evaluator.evaluate(init_vars[6])
 
 	assert score is not None
 
 def test_sup_cov_zeros(init_vars):
-	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[2])
+	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[2], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = sup_cov_evaluator.evaluate(init_vars[4])
 
 	assert score is not None
 
 def test_ft_dist_equal(init_vars):
-	ft_dist_evaluator = FTDistEvaluator(init_vars[0])
+	ft_dist_evaluator = FTDistEvaluator(init_vars[0], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = ft_dist_evaluator.evaluate(init_vars[4], np.array([1.0]*10))
 
 	assert score is not None
 
 def test_ft_dist_unequal(init_vars):
-	ft_dist_evaluator = FTDistEvaluator(init_vars[0])
+	ft_dist_evaluator = FTDistEvaluator(init_vars[0], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = ft_dist_evaluator.evaluate(init_vars[6], np.array([1.0]*10))
 
 	assert score is not None
 
 def test_ft_dist_zeros(init_vars):
-	ft_dist_evaluator = FTDistEvaluator(init_vars[2])
+	ft_dist_evaluator = FTDistEvaluator(init_vars[2], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = ft_dist_evaluator.evaluate(init_vars[4], np.array([1.0]*10))
 
 	assert score is not None

@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 class SupportCoverageEvaluator:
-    def __init__(self, real_dataset, num_bins=20, num_workers = 2, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_bins=20, num_workers = 2, batch_size = 256):
         '''
         Contains fucntions to evaluate closeness to real data in terms of number of samples in different numerical ranges
         Args:
@@ -11,6 +11,9 @@ class SupportCoverageEvaluator:
             num_workers: number of CPU processes to use for loading the dataset
             batch_size: batch_size for loading the data, adjust according to your machine
         '''
+
+        self.logger = logger
+        self.debug_logger = debug_logger
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
@@ -21,6 +24,7 @@ class SupportCoverageEvaluator:
         self.temporal_vars_cut_offs, self.real_data_coverage = self.get_real_data_coverage()
 
     def get_real_data_range(self):
+        self.debug_logger.info("Getting range of real data.")
         temp_temporal_vars_min, temp_temporal_vars_max = None, None
 
         real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
@@ -46,6 +50,7 @@ class SupportCoverageEvaluator:
         return temp_temporal_vars_min, temp_temporal_vars_max
 
     def get_real_data_coverage(self):
+        self.debug_logger.info("Getting Real Data Coverage")
         real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
                                  batch_size=self.batch_size)
         
@@ -57,7 +62,7 @@ class SupportCoverageEvaluator:
 
             # Store cut-offs in the dictionary
             temporal_vars_cut_offs[f'temporal_var_{i+1}'] = bin_cut_offs.tolist()
-
+        self.debug_logger.debug(f"Temporal vars cut offs: {temporal_vars_cut_offs}")
         for batch in real_loader:
             static_vars = batch[0].numpy()
             temporal_vars = batch[1].numpy()
@@ -77,11 +82,13 @@ class SupportCoverageEvaluator:
                 counts[unique - 1] += counts_per_bucket
 
                 temporal_vars_counts[f'temporal_var_{i}'] = counts
-
+        self.debug_logger.debug(f"Temporal Var Counts: {temporal_vars_counts}")
         return temporal_vars_cut_offs, temporal_vars_counts
 
     def evaluate(self, synthetic_dataset):
+        self.debug_logger.info("Evaluate function of Support Converage")
         scaling_factor = len(self.real_dataset)/len(synthetic_dataset)
+        self.debug_logger.debug(f"Scaling Factor: {scaling_factor}")
 
         syn_loader = DataLoader(synthetic_dataset, #num_workers=self.num_workers,
                                 batch_size=self.batch_size)    

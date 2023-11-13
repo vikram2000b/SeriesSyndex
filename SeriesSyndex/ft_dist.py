@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import ot
 
 class FTDistEvaluator:
-    def __init__(self, real_dataset, num_workers = 2, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_workers = 2, batch_size = 256):
         '''
         Contains fucntions to evaluate closeness to real data after fourier transform
         Args:
@@ -11,6 +11,8 @@ class FTDistEvaluator:
             num_workers: number of CPU processes to use for loading the dataset
             batch_size: batch_size for loading the data, adjust according to your machine
         '''
+        self.logger = logger
+        self.debug_logger = debug_logger
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
@@ -126,5 +128,7 @@ class FTDistEvaluator:
         Returns:
             np.float: Evaluation Score
         '''
+        self.debug_logger.info("Starting the Evaluate function of FT Dist.")
         wass_dist = self.get_ft_wass_dist(synthetic_dataset, num_eval_batches)
+        self.debug_logger.debug(f"Wasserstein Distance: {wass_dist}")
         return np.mean(np.clip(calib_params/wass_dist, 0, 1))

@@ -171,7 +171,7 @@ class MLEfficacyEvaluator:
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
                 
-                outputs = model(series_vars)
+                outputs = model(series_vars.float())
 
                 loss = loss_fn(outputs.squeeze(), labels.float())
                 losses.append(loss.item())
@@ -196,7 +196,7 @@ class MLEfficacyEvaluator:
         for batch in test_data_loader:
             (static_vars, series_vars), labels = batch
                 
-            outputs = model(series_vars)
+            outputs = model(series_vars.float())
             loss = loss_fn(outputs.squeeze(), labels.float())
             losses.append(loss.item())
             target_labels.append(labels.cpu())

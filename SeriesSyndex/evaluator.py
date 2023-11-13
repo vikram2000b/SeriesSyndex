@@ -29,9 +29,9 @@ class Evaluator:
         logger.info("Creating the ML Efficacy Evaluator")
         self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, logger=logger, debug_logger=debug_logger)
         logger.info("Creating the Support Coverage Evaluator")
-        self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset)
+        self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset, logger=logger, debug_logger=debug_logger)
         logger.info("Creating the Fourier Transform Distance Evaluator")
-        self.ft_dist_evaluator = FTDistEvaluator(real_dataset)
+        self.ft_dist_evaluator = FTDistEvaluator(real_dataset, logger=logger, debug_logger=debug_logger)
 
     def calibrate(self, portion_size = 0.2, num_pairs = 1):
         '''

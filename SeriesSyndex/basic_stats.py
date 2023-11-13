@@ -1,5 +1,6 @@
 import numpy as np
 from torch.utils.data import DataLoader
+from dython.nominal import associations
 
 class BasicStatsEvaluator:
     def __init__(self, real_dataset, num_workers = 1, batch_size = 256):
@@ -17,31 +18,12 @@ class BasicStatsEvaluator:
     def mape (self, vector_a, vector_b):
         return abs(vector_a-vector_b)/abs(vector_a+1e-6)
 
-    def evaluate(self, synthetic_dataset):
-        # Not specifying num_workers due to issues in Windows Machine
-        real_loader = DataLoader(self.real_dataset, batch_size=self.batch_size)
-        syn_loader = DataLoader(synthetic_dataset, batch_size=self.batch_size)
-        print("Evaluating Mean & Std of Real Data.")
-        real_mean, real_std = self.get_mean_std(real_loader)
-        print("Evaluating Mean & Std of Synthetic Data.")
-        syn_mean, syn_std = self.get_mean_std(syn_loader)
-        mean_mape = np.clip(self.mape(real_mean, syn_mean), 0, 1)
-        score = np.sum(mean_mape)
+    def log_corr(self, data, cat_cols=[]):
+        corr = associations(data, nominal_columns=cat_cols, nom_nom_assoc='theil', multiprocessing=True)['corr'].to_numpy()
+        corr_log = np.sign(corr)*np.log(abs(corr))
+        return corr_log 
 
-        std_mape = np.clip(self.mape(real_std, syn_std), 0, 1)
-        score += np.sum(std_mape)
-
-        # TODO - Cache the mean & std of real data after first execution
-        
-        # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
-        # score += np.sum(median_mape)
-        score /= len(real_mean) +len(real_std) #+ len(real_median)
-
-        score = 1-score if score<=1.0 else 0.0
-        #print('1:', score)
-        return score
-
-    def get_mean_std(self, dataloader):
+    def get_mean_std_corr(self, dataloader, cat_cols=[]):
         '''
         Function to get mean and standard deviation of the attributes of a dataset.
         Args:
@@ -52,6 +34,7 @@ class BasicStatsEvaluator:
         '''
         running_mean = None
         running_mean_sq = None
+        running_log_corr = None
         num_samples = 0
         
         for batch in dataloader:
@@ -63,19 +46,51 @@ class BasicStatsEvaluator:
 
             batch_mean = np.mean(temporal_vars, (0, 1))
             batch_mean_sq = np.mean(temporal_vars_sq, (0, 1))
+            batch_log_corr = self.log_corr(temporal_vars.reshape((-1, temporal_vars.shape[-1])), cat_cols)
 
             if running_mean is None:
                 running_mean = batch_mean
-                running_mean_sq = batch_mean
+                running_mean_sq = batch_mean_sq
+                running_log_corr = batch_log_corr
             else:
                 #TO DO - Solve the problem of overflow in larger datasets
                 running_mean = (num_samples*running_mean + batch_mean)/(num_samples+num_batch_samples)
                 running_mean_sq = (num_samples*running_mean_sq + batch_mean_sq)/(num_samples+num_batch_samples)
+                running_log_corr = (num_samples*running_log_corr + batch_log_corr)/(num_samples+num_batch_samples)
             
             num_samples += num_batch_samples
             # print(batch)
-        
-        final_mean = running_mean
+
         final_std = np.sqrt(running_mean_sq - np.square(running_mean))
 
-        return final_mean, final_std
+        return running_mean, final_std, running_log_corr   
+
+    def evaluate(self, synthetic_dataset, cat_cols=[]):
+        # Not specifying num_workers due to issues in Windows Machine
+        real_loader = DataLoader(self.real_dataset, batch_size=self.batch_size)
+        syn_loader = DataLoader(synthetic_dataset, batch_size=self.batch_size)
+        print("Evaluating Mean & Std & Correlation Matrix of Real Data.")
+        real_mean, real_std, real_log_corr = self.get_mean_std_corr(real_loader, cat_cols)
+        print("Evaluating Mean & Std & Correlation Matrix of Synthetic Data.")
+        syn_mean, syn_std, syn_log_corr = self.get_mean_std_corr(syn_loader, cat_cols)
+        mean_mape = np.clip(self.mape(real_mean, syn_mean), 0, 1)
+        score = np.sum(mean_mape)/len(real_mean)
+
+        std_mape = np.clip(self.mape(real_std, syn_std), 0, 1)
+        score += np.sum(std_mape)/len(real_std)
+
+        corr_mape = np.sum(np.clip(self.mape(real_log_corr, syn_log_corr).flatten(), 0, 1))
+        n = real_log_corr.shape[-1]
+        corr_mape /= n**2 - n
+        score += corr_mape
+        # score = 1-score if score<=1.0 else 0.0
+
+        # TODO - Cache the mean, std & log correlation matrix of real data after first execution
+        
+        # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
+        # score += np.sum(median_mape)
+        score /= 3 #+ len(real_median)
+
+        score = 1-score if score<=1.0 else 0.0
+        #print('1:', score)
+        return score

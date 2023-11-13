@@ -8,16 +8,16 @@ from SeriesSyndex.logger import setup_logger
 import logging
 import numpy as np
 
-log = setup_logger("run.log", level = logging.INFO)
-debug_log = setup_logger("debug.log", level = logging.DEBUG)
+logger = setup_logger("run.log", level = logging.INFO)
+debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 import os
 print(os.getcwd())
 
 class Evaluator:
     def __init__(self, real_dataset, num_features):
-        log.info("Initiating the Evaluator Class.")
-        debug_log.info("Initiating the Evaluator Class.")
+        logger.info("Initiating the Evaluator Class.")
+        debug_logger.info("Initiating the Evaluator Class.")
         self.real_dataset = real_dataset
         self.num_features = num_features
         debug_log.info(f"Number of features in datasets: {self.num_features}")
@@ -84,6 +84,8 @@ class Evaluator:
 
         pmse_score = self.pmse_evaluator.evaluate(synthetic_data)
         overall_score += pmse_score
+
+        ft_dist_score = self.ft_disct_evaluator(synthetic_data)
 
         sup_cov_score = self.sup_cov_evaluator.evaluate(synthetic_data)
         overall_score += sup_cov_score

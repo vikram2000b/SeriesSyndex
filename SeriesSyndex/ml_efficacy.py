@@ -4,11 +4,12 @@ import numpy as np
 from torch.utils.data import DataLoader, random_split
 
 
-from models import LSTMRegressor
+from SeriesSyndex.models import LSTMRegressor
+from SeriesSyndex.data_utils import MLEfficacyDataset
 
 class MLEfficacyEvaluator:
     def __init__(self, real_dataset, num_feature,  lstm_hidden_size = 64, num_layers = 4,
-                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 32, target_feature = 0):
+                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128, target_feature = 0):
         '''
         Constructor for ML Efficacy Evaluator. 
         Args:
@@ -30,10 +31,18 @@ class MLEfficacyEvaluator:
         self.lstm_hidden_size = lstm_hidden_size
         self.num_layers = num_layers
         self.num_feature = num_feature
+        self.target_feature = target_feature
     
-    def evaluate(self, synthetic_dataset, balance_dataset = True):
-
-        real_model = LSTMRegressor(input_size=self.num_features, 
+    def evaluate(self, synthetic_dataset):
+        '''
+        Evaluate the ML Efficacy score of a synthetic dataset.
+        Args:
+            synthetic_dataset (torch Dataset or numpy array): The Synthetic dataset which needs to be evaluated.
+        
+        Returns:
+            Score (int): ML Efficacy score of the model.
+        '''
+        real_model = LSTMRegressor(input_size=self.num_feature, 
                                     hidden_size=self.lstm_hidden_size,
                                     num_layers=self.num_layers)
         
@@ -42,9 +51,12 @@ class MLEfficacyEvaluator:
         real_val_size = int(0.1 * real_total_size)   
         real_test_size = real_total_size - real_train_size - real_val_size 
 
+        # convert the dataset to have labels
+        mle_real_dataset = MLEfficacyDataset(self.real_dataset, target_feature=self.target_feature)
+
         # create train, val, and test datasets
         train_dataset, val_dataset, test_dataset = random_split(
-            self.real_dataset, 
+            mle_real_dataset, 
             [real_train_size, real_val_size, real_test_size]
         )
         
@@ -57,10 +69,10 @@ class MLEfficacyEvaluator:
 
         self.train(real_model, train_data_loader, val_data_loader)
 
-        real_eval = self.model_eval(real_model, test_data_loader)
+        real_eval = self.eval_model(real_model, test_data_loader)
 
 
-        syn_model = LSTMRegressor(input_size=self.num_features, 
+        syn_model = LSTMRegressor(input_size=self.num_feature, 
                                     hidden_size=self.lstm_hidden_size,
                                     num_layers=self.num_layers)
         
@@ -69,9 +81,12 @@ class MLEfficacyEvaluator:
         syn_val_size = int(0.1 * syn_total_size)   
         syn_test_size = syn_total_size - syn_train_size - syn_val_size 
 
+        # convert the dataset to have labels
+        mle_syn_dataset = MLEfficacyDataset(synthetic_dataset, target_feature=self.target_feature)
+
         # create train, val, and test datasets
         syn_train_dataset, syn_val_dataset, syn_test_dataset = random_split(
-            synthetic_dataset, 
+            mle_syn_dataset, 
             [syn_train_size, syn_val_size, syn_test_size]
         )
         
@@ -84,11 +99,11 @@ class MLEfficacyEvaluator:
 
         self.train(real_model, syn_train_data_loader, syn_val_data_loader)
 
-        syn_eval = self.model_eval(real_model, test_data_loader)
+        syn_eval = self.eval_model(real_model, test_data_loader)
 
         if syn_eval['loss'] <= real_eval['loss']:
             return eval
-        score = np.clip(mape(np.array(real_eval['loss']), np.array(syn_eval['loss'])), 0, 1)
+        score = np.clip(self.mape(np.array(real_eval['loss']), np.array(syn_eval['loss'])), 0, 1)
         return score
 
 
@@ -96,11 +111,11 @@ class MLEfficacyEvaluator:
         
     def train(self, model, train_data_loader, val_data_loader):
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
-        loss_fn = nn.BCELoss()
+        loss_fn = nn.MSELoss()
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = True)
 
         for epoch in range(self.epochs):
-            self.model.train()
+            model.train()
             losses = []
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
@@ -122,12 +137,11 @@ class MLEfficacyEvaluator:
 
     @torch.no_grad()
     def eval_model(self, model, test_data_loader):
-        self.model.eval()
+        model.eval()
         losses = []
         loss_fn = nn.MSELoss()
         predicted_labels = []
         target_labels = []
-        predicted_probs = []
         for batch in test_data_loader:
             (static_vars, series_vars), labels = batch
                 
@@ -146,5 +160,8 @@ class MLEfficacyEvaluator:
         return {
             "loss": test_loss
         }
+    
+    def mape (self, vector_a, vector_b):
+        return abs(vector_a-vector_b)/abs(vector_a+1e-6)
 
     

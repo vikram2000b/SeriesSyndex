@@ -13,7 +13,7 @@ from SeriesSyndex.models import LSTMClassifier
 
 class pMSEEvaluator:
     def __init__(self, real_dataset, num_features, lstm_hidden_size = 64, num_layers = 4,
-                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 32):
+                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128):
         self.real_dataset = real_dataset
         self.num_workers = num_loader_workers
         self.model = LSTMClassifier(input_size=num_features, 
@@ -25,6 +25,7 @@ class pMSEEvaluator:
         self.batch_size = batch_size
         
     def reset_weights(self):
+        '''Function to re-initialize the weights of the model.'''
         for layer in self.model.children():
             if isinstance(layer, nn.LSTM):
                 # Reset LSTM weights
@@ -89,6 +90,11 @@ class pMSEEvaluator:
         return 2*(1 - max(test_acc, 0.5))
 
     def train_model(self, train_data_loader, val_data_loader):
+        '''Train the model.
+        Args:
+            train_data_loader (torch DataLoader): DataLoader for train set.
+            val_data_loader (torch DataLoader): Dataloader for Validation Set
+        '''
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         loss_fn = nn.BCELoss()

@@ -11,29 +11,26 @@ import numpy as np
 logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
-import os
-print(os.getcwd())
-
 class Evaluator:
     def __init__(self, real_dataset, num_features):
         logger.info("Initiating the Evaluator Class.")
         debug_logger.info("Initiating the Evaluator Class.")
         self.real_dataset = real_dataset
         self.num_features = num_features
-        debug_log.info(f"Number of features in datasets: {self.num_features}")
+        debug_logger.info(f"Number of features in datasets: {self.num_features}")
 
-        log.info("Calibrating")
+        logger.info("Calibrating the parameters")
         self.calib_params = self.calibrate()
 
-        log.info("Creating the Basic Statistics Evaluator")
-        self.stats_evaluator = BasicStatsEvaluator(real_dataset)
-        log.info("Creating the pMSE Evaluator")
-        self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features)
-        log.info("Creating the ML Efficacy Evaluator")
-        self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_feature=self.num_features)
-        log.info("Creating the Support Coverage Evaluator")
+        logger.info("Creating the Basic Statistics Evaluator")
+        self.stats_evaluator = BasicStatsEvaluator(real_dataset, logger=logger, debug_logger=debug_logger)
+        logger.info("Creating the pMSE Evaluator")
+        self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, debug_logger=debug_logger)
+        logger.info("Creating the ML Efficacy Evaluator")
+        self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_feature=self.num_features, logger=logger, debug_logger=debug_logger)
+        logger.info("Creating the Support Coverage Evaluator")
         self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset)
-        log.info("Creating the Fourier Transform Distance Evaluator")
+        logger.info("Creating the Fourier Transform Distance Evaluator")
         self.ft_dist_evaluator = FTDistEvaluator(real_dataset)
 
     def calibrate(self, portion_size = 0.2, num_pairs = 1):
@@ -46,8 +43,8 @@ class Evaluator:
         Returns:
             dict: appropriate hyperparameters for different evaluators
         '''
-        debug_log.info(f"Calibrating the function")
-        #TO DO - Find appropriate base for PMSE
+        debug_logger.info(f"Calibrating the function")
+        #TODO - Find appropriate base for PMSE
         
         #Calibrate FT_dist using distances between real data subsets
         subset_size = int(len(self.real_dataset)*portion_size)
@@ -84,8 +81,6 @@ class Evaluator:
 
         pmse_score = self.pmse_evaluator.evaluate(synthetic_data)
         overall_score += pmse_score
-
-        ft_dist_score = self.ft_disct_evaluator(synthetic_data)
 
         sup_cov_score = self.sup_cov_evaluator.evaluate(synthetic_data)
         overall_score += sup_cov_score

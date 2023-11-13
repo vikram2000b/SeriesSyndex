@@ -163,7 +163,7 @@ class MLEfficacyEvaluator:
     def train(self, model, train_data_loader, val_data_loader):
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         loss_fn = nn.MSELoss()
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = True)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = False)
 
         for epoch in range(self.epochs):
             model.train()

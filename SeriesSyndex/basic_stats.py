@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from dython.nominal import associations
 
 class BasicStatsEvaluator:
-    def __init__(self, real_dataset, num_workers = 1, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_workers = 1, batch_size = 256):
         '''
         Contains fucntions to evaluate closeness to real data in terms of baisc stats like mean, median, and standard deviation
         Args:
@@ -11,6 +11,10 @@ class BasicStatsEvaluator:
             num_workers: number of CPU processes to use for loading the dataset
             batch_size: batch_size for loading the data, adjust according to your machine
         '''
+
+        self.debug_logger = debug_logger
+        self.debug_logger.info("Initiating the Basic Statistics Evaluator.")
+        self.logger = logger
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
@@ -32,6 +36,7 @@ class BasicStatsEvaluator:
         Returns:
             np.array: Mean value of each attribute
         '''
+        self.debug_logger.info("Getting Mean and Standard Deviation of the data.")
         running_mean = None
         running_mean_sq = None
         running_log_corr = None
@@ -69,20 +74,51 @@ class BasicStatsEvaluator:
         # Not specifying num_workers due to issues in Windows Machine
         real_loader = DataLoader(self.real_dataset, batch_size=self.batch_size)
         syn_loader = DataLoader(synthetic_dataset, batch_size=self.batch_size)
-        print("Evaluating Mean & Std & Correlation Matrix of Real Data.")
+
+        self.logger.info("Evaluating Mean & Std & Correlation Matrix of Real Data.")
+        self.debug_logger.info("Evaluating Mean & Std & Correlation Matrix of Real Data.")
+
         real_mean, real_std, real_log_corr = self.get_mean_std_corr(real_loader, cat_cols)
-        print("Evaluating Mean & Std & Correlation Matrix of Synthetic Data.")
+
+        self.logger.info(f"Mean: {real_mean} \n Standard Deviation: {real_std} \n Log Correlation: {real_log_corr}")
+        self.debug_logger.debug(f"Mean: {real_mean} \n Standard Deviation: {real_std} \n Log Correlation: {real_log_corr}")
+
+        self.logger.info("Evaluating Mean & Std & Correlation Matrix of Synthetic Data.")
+        self.debug_logger.info("Evaluating Mean & Std & Correlation Matrix of Synthetic Data.")
+
         syn_mean, syn_std, syn_log_corr = self.get_mean_std_corr(syn_loader, cat_cols)
+
+        self.logger.info(f"Mean: {real_mean} \n Standard Deviation: {real_std} \n Log Correlation: {real_log_corr}")
+        self.debug_logger.debug(f"Mean: {real_mean} \n Standard Deviation: {real_std} \n Log Correlation: {real_log_corr}")
+
         mean_mape = np.clip(self.mape(real_mean, syn_mean), 0, 1)
+
+        self.debug_logger.debug(f"Mean Mape: {mean_mape}")
+        
         score = np.sum(mean_mape)/len(real_mean)
 
+        self.logger.info(f"Mean Score: {1 - score}")
+        self.debug_logger.debug(f"Mean Score: {1 - score}")
+
         std_mape = np.clip(self.mape(real_std, syn_std), 0, 1)
+
+        self.debug_logger.debug(f"Std Mape: {std_mape}")
+
         score += np.sum(std_mape)/len(real_std)
 
+        self.logger.info(f"Std Score: {1 - np.sum(std_mape)/len(real_std)}")
+        self.debug_logger.debug(f"Std Score: {1 - np.sum(std_mape)/len(real_std)}")
+
         corr_mape = np.sum(np.clip(self.mape(real_log_corr, syn_log_corr).flatten(), 0, 1))
+        self.debug_logger.debug(f"Corr Mape: {corr_mape}")
+
         n = real_log_corr.shape[-1]
+        self.debug_logger.debug(f"Corr Shape: {n}")
+
         corr_mape /= n**2 - n
         score += corr_mape
+        self.logger.info(f"Correlation Score: {corr_mape}")
+        self.debug_logger.debug(f"Correlation Score: {corr_mape}")
         # score = 1-score if score<=1.0 else 0.0
 
         # TODO - Cache the mean, std & log correlation matrix of real data after first execution
@@ -90,6 +126,7 @@ class BasicStatsEvaluator:
         # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
         # score += np.sum(median_mape)
         score /= 3 #+ len(real_median)
+
 
         score = 1-score if score<=1.0 else 0.0
         #print('1:', score)

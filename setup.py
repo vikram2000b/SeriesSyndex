@@ -10,7 +10,7 @@ setup(
     license='BSD 2-clause',
     packages=['SeriesSyndex'],
     install_requires=['numpy', 'torch',                   
-                      'POT'],
+                      'POT', 'dython'],
 
     classifiers=[
         'Development Status :: 1 - Planning',

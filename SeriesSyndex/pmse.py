@@ -106,7 +106,7 @@ class pMSEEvaluator:
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         loss_fn = nn.BCELoss()
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = True)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = False)
 
         for epoch in range(self.epochs):
             self.model.train()

@@ -64,7 +64,7 @@ class Evaluator:
 
             subset_2 = Subset(self.real_dataset, subset_indices_2)
 
-            ft_dist_evaluator = FTDistEvaluator(subset_1)
+            ft_dist_evaluator = FTDistEvaluator(subset_1, logger=logger, debug_logger=debug_logger)
             # print(ft_dist_evaluator.get_ft_wass_dist(subset_2))
             wass_dists.append(ft_dist_evaluator.get_ft_wass_dist(subset_2))
 

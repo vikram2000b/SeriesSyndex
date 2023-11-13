@@ -1,5 +1,6 @@
 from SeriesSyndex.basic_stats import BasicStatsEvaluator
 from SeriesSyndex.pmse import pMSEEvaluator
+from SeriesSyndex.ml_efficacy import MLEfficacyEvaluator
 
 class Evaluator:
     def __init__(self, real_dataset, num_features):
@@ -8,6 +9,7 @@ class Evaluator:
 
         self.stats_evaluator = BasicStatsEvaluator(real_dataset)
         self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features)
+        self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_feature=self.num_features)
 
     def calibrate(self, portion_size = 0.2, num_pairs = 1):
         '''
@@ -30,11 +32,14 @@ class Evaluator:
         pmse_score = self.pmse_evaluator.evaluate(synthetic_data)
         overall_score += pmse_score
 
+        ml_eff_score = self.ml_eff_evaluator.evaluate(synthetic_data)
+        overall_score += ml_eff_score
         # TODO
         return {
             "score": overall_score,
             "basic_stats_score": stats_score,
-            "pmse_score": pmse_score
+            "pmse_score": pmse_score,
+            "ml_eff_score": ml_eff_score
         }
 
 

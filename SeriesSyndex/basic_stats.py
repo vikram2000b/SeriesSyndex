@@ -28,12 +28,14 @@ class BasicStatsEvaluator:
         mean_mape = np.clip(self.mape(real_mean, syn_mean), 0, 1)
         score = np.sum(mean_mape)
 
-        # TODO - Cache the mean of real data after first execution
-        # std_mape = np.clip(mape(real_std, fake_std), 0, 1)
-        # score += np.sum(std_mape)
+        std_mape = np.clip(self.mape(real_std, syn_std), 0, 1)
+        score += np.sum(std_mape)
+
+        # TODO - Cache the mean & std of real data after first execution
+        
         # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
         # score += np.sum(median_mape)
-        score /= len(real_mean)#+len(real_std) + len(real_median)
+        score /= len(real_mean) +len(real_std) #+ len(real_median)
 
         score = 1-score if score<=1.0 else 0.0
         #print('1:', score)

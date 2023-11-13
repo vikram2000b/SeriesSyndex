@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 class BasicStatsEvaluator:
-    def __init__(self, real_dataset, num_workers = 2, batch_size = 256):
+    def __init__(self, real_dataset, num_workers = 1, batch_size = 256):
         '''
         Contains fucntions to evaluate closeness to real data in terms of baisc stats like mean, median, and standard deviation
         Args:
@@ -18,21 +18,24 @@ class BasicStatsEvaluator:
         return abs(vector_a-vector_b)/abs(vector_a+1e-6)
 
     def evaluate(self, synthetic_dataset):
-        real_loader = DataLoader(self.real_dataset, num_workers=self.num_workers, 
-                                 batch_size=self.batch_size)
-        syn_loader = DataLoader(synthetic_dataset, num_workers=self.num_workers,
-                                batch_size=self.batch_size)
-
-        real_mean = self.get_mean(real_loader)
-        syn_mean = self.get_mean(syn_loader)
-
+        # Not specifying num_workers due to issues in Windows Machine
+        real_loader = DataLoader(self.real_dataset, batch_size=self.batch_size)
+        syn_loader = DataLoader(synthetic_dataset, batch_size=self.batch_size)
+        print("Evaluating Mean & Std of Real Data.")
+        real_mean, real_std = self.get_mean_std(real_loader)
+        print("Evaluating Mean & Std of Synthetic Data.")
+        syn_mean, syn_std = self.get_mean_std(syn_loader)
         mean_mape = np.clip(self.mape(real_mean, syn_mean), 0, 1)
         score = np.sum(mean_mape)
-        # std_mape = np.clip(mape(real_std, fake_std), 0, 1)
-        # score += np.sum(std_mape)
+
+        std_mape = np.clip(self.mape(real_std, syn_std), 0, 1)
+        score += np.sum(std_mape)
+
+        # TODO - Cache the mean & std of real data after first execution
+        
         # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
         # score += np.sum(median_mape)
-        score /= len(real_mean)#+len(real_std) + len(real_median)
+        score /= len(real_mean) +len(real_std) #+ len(real_median)
 
         score = 1-score if score<=1.0 else 0.0
         #print('1:', score)
@@ -50,10 +53,10 @@ class BasicStatsEvaluator:
         running_mean = None
         running_mean_sq = None
         num_samples = 0
-
+        
         for batch in dataloader:
-            static_vars = batch[0].item()
-            temporal_vars = batch[1].item()
+            static_vars = batch[0].numpy()
+            temporal_vars = batch[1].numpy()
             temporal_vars_sq = np.square(temporal_vars)
 
             num_batch_samples = static_vars.shape[0]

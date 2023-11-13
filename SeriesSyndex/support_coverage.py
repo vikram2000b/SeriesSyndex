@@ -107,7 +107,7 @@ class SupportCoverageEvaluator:
         temporal_vars_coverage = []
 
         for i in range(len(temporal_vars_counts.keys())):
-            temp_var_i_coverage = np.array(self.real_data_coverage[[f'temporal_var_{i}']])/np.array(self.temporal_vars_counts[[f'temporal_var_{i}']])
+            temp_var_i_coverage = np.array(self.real_data_coverage[[f'temporal_var_{i}']])/(np.array(self.temporal_vars_counts[[f'temporal_var_{i}']])+1e-6)
             temp_var_i_coverage *= scaling_factor
             temp_var_i_coverage = np.mean(np.clip(temp_var_i_coverage, 0,  2))
 

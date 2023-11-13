@@ -48,7 +48,7 @@ class BasicStatsEvaluator:
             dataloader (pytorch DataLoader): The dataloader of the dataset for which the means are required.
         
         Returns:
-            dict: Mean value of each attribute
+            np.array: Mean value of each attribute
         '''
         running_mean = None
         running_mean_sq = None

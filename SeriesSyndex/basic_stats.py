@@ -19,7 +19,7 @@ class BasicStatsEvaluator:
         return abs(vector_a-vector_b)/abs(vector_a+1e-6)
 
     def log_corr(self, data, cat_cols=[]):
-        corr = associations(data, nominal_columns=cat_cols, nom_nom_assoc='theil', multiprocessing=True)['corr'].to_numpy()
+        corr = associations(data, nominal_columns=cat_cols, nom_nom_assoc='theil', multiprocessing=True, plot=False)['corr'].to_numpy()
         corr_log = np.sign(corr)*np.log(abs(corr))
         return corr_log 
 

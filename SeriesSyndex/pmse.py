@@ -12,8 +12,16 @@ from SeriesSyndex.models import LSTMClassifier
 
 
 class pMSEEvaluator:
-    def __init__(self, real_dataset, num_features, lstm_hidden_size = 64, num_layers = 4,
+    def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128):
+        '''
+        Constructor ofr pMSE Evaluator.
+        Args:
+            real_dataset 
+        '''
+        self.debug_logger = debug_logger
+        self.debug_logger.info("Initiating the ML Efficacy Evaluator Class.")
+        self.logger = logger
         self.real_dataset = real_dataset
         self.num_workers = num_loader_workers
         self.model = LSTMClassifier(input_size=num_features, 
@@ -79,10 +87,10 @@ class pMSEEvaluator:
         
         test_data_loader = DataLoader(test_dataset, batch_size=self.batch_size)
 
-        print("Training the classifier.")
+        self.debug_logger.info("Training the classifier.")
         self.train_model(train_data_loader, val_data_loader)
 
-        print("Evaluating the classifier.")
+        self.debug_logger.info("Evaluating the classifier.")
         test_scores = self.eval_model(test_data_loader)
 
         test_acc = test_scores['accuracy']
@@ -117,7 +125,7 @@ class pMSEEvaluator:
 
             scheduler.step(val_eval['loss'])
 
-            print(f"Training Epoch: {epoch}, Train Loss: {np.mean(losses)}, \
+            self.debug_logger.debug(f"Training Epoch: {epoch}, Train Loss: {np.mean(losses)}, \
                   Val Loss: {val_eval['loss']}, Val Acc: {val_eval['accuracy']}")
     
     @torch.no_grad()

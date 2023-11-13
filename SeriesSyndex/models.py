@@ -49,7 +49,7 @@ class TCNClassifier(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.tcn(x)
+        x = self.tcn(x.permute(0, 2, 1))
         x = x.mean(dim=2)  # Global average pooling
         x = self.fc(x)
         x = self.sigmoid(x)
@@ -82,7 +82,7 @@ class TCNRegressor(nn.Module):
         self.fc = nn.Linear(num_channels, 1)
 
     def forward(self, x):
-        x = self.tcn(x)
+        x = self.tcn(x.permute(0, 2, 1))
         x = x.mean(dim=2)  # Global average pooling
         x = self.fc(x)
         return x

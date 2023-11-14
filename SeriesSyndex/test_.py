@@ -35,6 +35,7 @@ def init_vars():
 
 	real_dataset_100 = TestDataset(np.random.rand(100, 100, 10), np.random.rand(100, 100, 10))
 	syn_dataset_1000 = TestDataset(np.random.rand(1000, 100, 10), np.random.rand(1000, 100, 10))
+	syn_dataset_2x_1000 = TestDataset(2*np.random.rand(1000, 100, 10), 2*np.random.rand(1000, 100, 10))
 
 	temporal_vars_cat_1000 = np.random.rand(1000, 100, 10)
 	temporal_vars_cat_1000[:, :, 2:4] = np.random.randint(0, 10, (1000, 100, 2))
@@ -43,11 +44,15 @@ def init_vars():
 	syn_dataset_100 = TestDataset(np.random.rand(100, 100, 10), np.random.rand(100, 100, 10))
 	real_dataset_zeros_1000 = TestDataset(np.zeros((1000, 100, 10)), np.zeros((1000, 100, 10)))
 
+	real_dataset_1_feat_1000 = TestDataset(np.random.rand(100, 100, 1), np.random.rand(100, 100, 1))
+	syn_dataset_1_feat_1000 = TestDataset(np.random.rand(100, 100, 1), np.random.rand(100, 100, 1))
+
 	logger = setup_logger("test_run.log", level = logging.INFO)
 	debug_logger = setup_logger("test_debug.log", level = logging.DEBUG)
 
 	return real_dataset_1000, real_dataset_cat_1000, real_dataset_zeros_1000, real_dataset_100, \
-		syn_dataset_1000, syn_dataset_cat_1000, syn_dataset_100, logger, debug_logger
+		syn_dataset_1000, syn_dataset_cat_1000, syn_dataset_100, real_dataset_1_feat_1000, \
+		syn_dataset_1_feat_1000, syn_dataset_2x_1000, logger, debug_logger
 
 def test_basic_stats_equal(init_vars):
 	stats_evaluator = BasicStatsEvaluator(init_vars[0], logger=init_vars[-2], debug_logger=init_vars[-1])
@@ -70,6 +75,12 @@ def test_basic_stats_zeros(init_vars):
 def test_basic_stats_cat(init_vars):
 	stats_evaluator = BasicStatsEvaluator(init_vars[1], logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = stats_evaluator.evaluate(init_vars[5], cat_cols=[2, 3])
+
+	assert score is not None
+
+def test_basic_stats_1_feat(init_vars):
+	stats_evaluator = BasicStatsEvaluator(init_vars[7], logger=init_vars[-2], debug_logger=init_vars[-1])
+	score = stats_evaluator.evaluate(init_vars[8])
 
 	assert score is not None
 
@@ -112,6 +123,12 @@ def test_ml_eff_zeros(init_vars):
 def test_sup_cov_equal(init_vars):
 	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0],logger=init_vars[-2], debug_logger=init_vars[-1])
 	score = sup_cov_evaluator.evaluate(init_vars[4])
+
+	assert score is not None
+
+def test_sup_cov_2x(init_vars):
+	sup_cov_evaluator = SupportCoverageEvaluator(init_vars[0],logger=init_vars[-2], debug_logger=init_vars[-1])
+	score = sup_cov_evaluator.evaluate(init_vars[9])
 
 	assert score is not None
 

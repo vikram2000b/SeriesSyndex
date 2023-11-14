@@ -8,12 +8,13 @@ from sklearn.metrics import roc_auc_score
 
 
 from SeriesSyndex.data_utils import pMSEDataset
-from SeriesSyndex.models import LSTMClassifier
+from SeriesSyndex.models import LSTMClassifier, TCNClassifier
 
 
 class pMSEEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
-                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128):
+                 num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128,
+                    num_channels = 64, kernel_size = 3, model_type = 'TCN'):
         '''
         Constructor ofr pMSE Evaluator.
         Args:
@@ -24,10 +25,18 @@ class pMSEEvaluator:
         self.logger = logger
         self.real_dataset = real_dataset
         self.num_workers = num_loader_workers
-        self.model = LSTMClassifier(input_size=num_features, 
-                                              hidden_size=lstm_hidden_size,
-                                              num_layers=num_layers
-                                              )
+        if model_type == 'TCN':
+            self.model = TCNClassifier(input_size=num_features, num_channels=num_channels,
+                                      kernel_size = kernel_size, num_layers = num_layers)
+        elif model_type == 'LSTM':
+            self.model = LSTMClassifier(input_size=num_features, 
+                                                hidden_size=lstm_hidden_size,
+                                                num_layers=num_layers
+                                                )
+        else:
+            self.logger.info(f"The model type {self.model_type} is not supported.")
+            self.debug_logger.debug(f"The model type {self.model_type} is not supported.")
+            raise Exception(f"The model type {self.model_type} is not supported.")
         self.epochs = epochs
         self.lr = lr
         self.batch_size = batch_size

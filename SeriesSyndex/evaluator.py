@@ -12,7 +12,16 @@ logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 class Evaluator:
-    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu'):
+    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu', model_type = 'TCN'):
+        '''
+        Constructor for Evaluator.
+        Args:
+            real_dataset (torch.utils.data.Dataset): The real dataset which will be used to evaluate the given syntehtic data.
+            num_featuress (int): The number of temporal features in the dataset
+            batch_size (int): Batch size that needs to be used for the computations. Modify this according to system's capacity.
+            target_feature (int): Index of series feature which should be used as target for ML Efficacy calculation.
+            max_batches (int, default: None): The maximum number of batches to be used
+        '''
         logger.info("Initiating the Evaluator Class.")
         debug_logger.info("Initiating the Evaluator Class.")
         self.real_dataset = real_dataset
@@ -21,6 +30,7 @@ class Evaluator:
         self.batch_size = batch_size
         self.max_batches = max_batches
         self.device = device
+        self.model_type = model_type
         debug_logger.info(f"Number of features in datasets: {self.num_features}")
 
         logger.info("Calibrating the parameters")
@@ -40,7 +50,7 @@ class Evaluator:
             logger.info("Creating the pMSE Evaluator")
             self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, 
                                                 debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches,
-                                                device = device)
+                                                device = device, model_type= model_type)
         except Exception as e:
             logger.info(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
@@ -51,7 +61,7 @@ class Evaluator:
             self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, 
                                                         logger=logger, debug_logger=debug_logger,
                                                         batch_size=batch_size, max_batches = max_batches,
-                                                        device = device)
+                                                        device = device, model_type=model_type)
         except Exception as e:
             logger.info(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
@@ -91,12 +101,14 @@ class Evaluator:
         
         #Calibrate FT_dist using distances between real data subsets
         subset_size = int(len(self.real_dataset)*portion_size)
+        debug_logger.debug(f"Subset size for calibration: {subset_size}")
 
         indices = list(range(len(self.real_dataset)))
 
         wass_dists = []
-
+        debug_logger.debug(f"Number of indices: {num_pairs}")
         for i in range(num_pairs):
+            debug_logger.debug(f"pair: {i}")
             np.random.shuffle(indices)
             subset_indices_1 = indices[:subset_size]
 
@@ -110,7 +122,9 @@ class Evaluator:
             ft_dist_evaluator = FTDistEvaluator(subset_1, logger=logger, debug_logger=debug_logger)
             # print(ft_dist_evaluator.get_ft_wass_dist(subset_2))
             wass_dists.append(ft_dist_evaluator.get_ft_wass_dist(subset_2))
+            debug_logger.debug(f"Wass Dist for the pair: {wass_dists[-1]}")
 
+        debug_logger.debug(f"Final Wasserstein Dists: {wass_dists}, Mean Wasserstein Dists: {np.mean(wass_dists)}")
         return {'ft_dist_params': np.mean(np.array(wass_dists), axis=0)}
 
     def evaluate(self, synthetic_data, cat_cols=[]):

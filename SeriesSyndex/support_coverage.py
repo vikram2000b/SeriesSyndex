@@ -11,7 +11,9 @@ class SupportCoverageEvaluator:
             num_bins (int): number of bins to divide the data into and compare the number of samples in each bin for real and synthetic data
             num_workers (int): number of CPU processes to use for loading the dataset
             batch_size (int): batch_size for loading the data, adjust according to your machine
-            max_batches (int): Maximum number of batches to use for training the evaluator.
+            max_batches (int): max_batches to use for score calculation for both the real and synthetic data 
+            logger (logging.Logger): logger for basic logging
+            debug_logger (logging.Logger): logger for more exhaustive debug logging
         '''
 
         self.logger = logger

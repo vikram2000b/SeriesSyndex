@@ -8,11 +8,11 @@ class FTDistEvaluator:
         Contains fucntions to evaluate closeness to real data after fourier transform
         Args:
             real_dataset (torch.utils.data.Dataset): The real dataset which is used to evaluate the given syntehtic data.
-            num_workers: number of CPU processes to use for loading the dataset
-            batch_size: batch_size for loading the data, adjust according to your machine
-            max_batches: max_batches to use for score calculation for both the real and synthetic data 
-            logger: logger for basic logging
-            debug_logger: logger for more exhaustive debug logging
+            num_workers (int): number of CPU processes to use for loading the dataset
+            batch_size (int): batch_size for loading the data, adjust according to your machine
+            max_batches (int): max_batches to use for score calculation for both the real and synthetic data 
+            logger (logging.Logger): logger for basic logging
+            debug_logger (logging.Logger): logger for more exhaustive debug logging
         '''
         self.logger = logger
         self.debug_logger = debug_logger

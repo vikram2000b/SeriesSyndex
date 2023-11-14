@@ -12,7 +12,7 @@ logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 class Evaluator:
-    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None):
+    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu'):
         logger.info("Initiating the Evaluator Class.")
         debug_logger.info("Initiating the Evaluator Class.")
         self.real_dataset = real_dataset
@@ -20,6 +20,7 @@ class Evaluator:
         self.target_feature = target_feature
         self.batch_size = batch_size
         self.max_batches = max_batches
+        self.device = device
         debug_logger.info(f"Number of features in datasets: {self.num_features}")
 
         logger.info("Calibrating the parameters")
@@ -38,7 +39,8 @@ class Evaluator:
         try:
             logger.info("Creating the pMSE Evaluator")
             self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, 
-                                                debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches)
+                                                debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches,
+                                                device = device)
         except Exception as e:
             logger.info(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
@@ -48,7 +50,8 @@ class Evaluator:
             logger.info("Creating the ML Efficacy Evaluator")
             self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, 
                                                         logger=logger, debug_logger=debug_logger,
-                                                        batch_size=batch_size, max_batches = max_batches)
+                                                        batch_size=batch_size, max_batches = max_batches,
+                                                        device = device)
         except Exception as e:
             logger.info(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")

@@ -10,7 +10,7 @@ from SeriesSyndex.data_utils import MLEfficacyDataset
 class MLEfficacyEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128, target_feature = 0,
-                 num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None):
+                 num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu'):
         '''
         Constructor for ML Efficacy Evaluator. 
         Args:
@@ -45,6 +45,7 @@ class MLEfficacyEvaluator:
         self.num_channels = num_channels
         self.kernel_size = kernel_size
         self.max_batches = max_batches
+        self.device = device
 
         
     
@@ -65,10 +66,10 @@ class MLEfficacyEvaluator:
         if self.model_type == 'LSTM':
             real_model = LSTMRegressor(input_size=self.num_features, 
                                         hidden_size=self.lstm_hidden_size,
-                                        num_layers=self.num_layers)
+                                        num_layers=self.num_layers).to(self.device)
         elif self.model_type == 'TCN':
             real_model = TCNRegressor(input_size=self.num_features, num_channels=self.num_channels,
-                                      kernel_size = self.kernel_size, num_layers = self.num_layers)
+                                      kernel_size = self.kernel_size, num_layers = self.num_layers).to(self.device)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")
             self.debug_logger.debug(f"The model type {self.model_type} is not supported.")
@@ -111,10 +112,10 @@ class MLEfficacyEvaluator:
         if self.model_type == 'LSTM':
             syn_model = LSTMRegressor(input_size=self.num_features, 
                                         hidden_size=self.lstm_hidden_size,
-                                        num_layers=self.num_layers)
+                                        num_layers=self.num_layers).to(self.device)
         elif self.model_type == 'TCN':
             syn_model = TCNRegressor(input_size=self.num_features, num_channels=self.num_channels,
-                                      kernel_size = self.kernel_size, num_layers = self.num_layers)
+                                      kernel_size = self.kernel_size, num_layers = self.num_layers).to(self.device)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")
             self.debug_logger.info(f"The model type {self.model_type} is not supported.")
@@ -172,9 +173,9 @@ class MLEfficacyEvaluator:
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
                 
-                outputs = model(series_vars.float())
+                outputs = model(series_vars.float().to(self.device))
 
-                loss = loss_fn(outputs.squeeze(), labels.float())
+                loss = loss_fn(outputs.squeeze().to(self.device), labels.float().to(self.device))
                 losses.append(loss.item())
                 optimizer.zero_grad()
                 loss.backward()
@@ -200,11 +201,11 @@ class MLEfficacyEvaluator:
         for batch in test_data_loader:
             (static_vars, series_vars), labels = batch
                 
-            outputs = model(series_vars.float())
-            loss = loss_fn(outputs.squeeze(), labels.float())
+            outputs = model(series_vars.float().to(self.device))
+            loss = loss_fn(outputs.squeeze().to(self.device), labels.float().to(self.device))
             losses.append(loss.item())
             target_labels.append(labels.cpu())
-            predicted_labels.append(outputs.squeeze().cpu())
+            predicted_labels.append(outputs.squeeze().detach().cpu())
 
 
         target_labels = torch.concat(target_labels, axis = 0)

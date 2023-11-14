@@ -14,7 +14,7 @@ from SeriesSyndex.models import LSTMClassifier, TCNClassifier
 class pMSEEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128,
-                    num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None):
+                    num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu'):
         '''
         Constructor ofr pMSE Evaluator.
         Args:
@@ -25,14 +25,15 @@ class pMSEEvaluator:
         self.logger = logger
         self.real_dataset = real_dataset
         self.num_workers = num_loader_workers
+        self.device = device
         if model_type == 'TCN':
             self.model = TCNClassifier(input_size=num_features, num_channels=num_channels,
-                                      kernel_size = kernel_size, num_layers = num_layers)
+                                      kernel_size = kernel_size, num_layers = num_layers).to(device)
         elif model_type == 'LSTM':
             self.model = LSTMClassifier(input_size=num_features, 
                                                 hidden_size=lstm_hidden_size,
                                                 num_layers=num_layers
-                                                )
+                                                ).to(device)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")
             self.debug_logger.debug(f"The model type {self.model_type} is not supported.")
@@ -124,9 +125,9 @@ class pMSEEvaluator:
             num_batches_processed = 0
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
-                outputs = self.model(series_vars.float())
+                outputs = self.model(series_vars.float().to(self.device))
 
-                loss = loss_fn(outputs.squeeze(), labels.float())
+                loss = loss_fn(outputs.squeeze().to(self.device), labels.float().to(self.device))
                 losses.append(loss.item())
                 optimizer.zero_grad()
                 loss.backward()
@@ -152,11 +153,11 @@ class pMSEEvaluator:
         for batch in test_data_loader:
             (static_vars, series_vars), labels = batch
                 
-            outputs = self.model(series_vars.float())
-            loss = loss_fn(outputs.squeeze(), labels.float())
+            outputs = self.model(series_vars.float().to(self.device))
+            loss = loss_fn(outputs.squeeze().to(self.device), labels.float().to(self.device))
             losses.append(loss.item())
             target_labels.append(labels.cpu())
-            predicted_labels.append((outputs.squeeze() > 0.5).float().cpu())
+            predicted_labels.append((outputs.squeeze() > 0.5).detach().float().cpu())
             predicted_probs.append(outputs.squeeze().cpu().numpy())
 
         target_labels = torch.concat(target_labels, axis = 0)

@@ -69,12 +69,12 @@ class FTDistEvaluator:
                 syn_eval_batch_ft = np.fft.fft(syn_eval_batch, axis=1)
 
                 #Picking only the top n_components of Fourier Transformed data
-                # n_components = min(real_eval_batch.shape[1]/2, 50)
-                # real_top_n_indices = np.argsort(np.abs(real_eval_batch_ft), axis=1)[::-1][:n_components]
-                # real_eval_batch = real_eval_batch[:, real_top_n_indices, :]
+                n_components = min(real_eval_batch.shape[1]//2, 100)
+                real_top_n_indices = np.argsort(np.abs(real_eval_batch_ft), axis=1)[:, -n_components:, :]
+                real_eval_batch = np.take_along_axis(real_eval_batch, real_top_n_indices, axis = 1)
 
-                # syn_top_n_indices = np.argsort(np.abs(syn_eval_batch_ft), axis=1)[::-1][:n_components]
-                # syn_eval_batch = syn_eval_batch[:, syn_top_n_indices, :]
+                syn_top_n_indices = np.argsort(np.abs(syn_eval_batch_ft), axis=1)[:, -n_components:, :]
+                syn_eval_batch = np.take_along_axis(syn_eval_batch, syn_top_n_indices, axis = 1)
 
                 wass_dist = np.zeros(real_eval_batch.shape[-1])
 

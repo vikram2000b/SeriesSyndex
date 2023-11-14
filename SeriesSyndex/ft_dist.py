@@ -43,19 +43,38 @@ class FTDistEvaluator:
         num_samples = None
 
         num_batches_processed = 0
-        for real_batch, syn_batch in zip(real_loader, syn_loader):
+        self.debug_logger.debug(f"Maximum Number of Batches: {self.max_batches}")
+        for i, (real_batch, syn_batch) in enumerate(zip(real_loader, syn_loader)):
+            self.debug_logger.debug(f"Number of Batches Processed {num_batches_processed}")
+            self.debug_logger.debug(f"Processing batch {i+1}")
+            
             if  eval_batch_num < num_eval_batches:
                 #accumulate temporal variable batches for evaluation
                 eval_batch_num += 1
                 real_eval_batches.append(real_batch[1].numpy())
                 syn_eval_batches.append(syn_batch[1].numpy())
                 eval_batch_num += 1
+                num_batches_processed += 1
+
+                if self.max_batches and (num_batches_processed>=self.max_batches):
+                    self.debug_logger.debug("Stopping the loop and max batches limit reached.")
+                    break
             else:
                 real_eval_batch = np.concatenate(real_eval_batches)
                 syn_eval_batch = np.concatenate(syn_eval_batches)
 
+                self.debug_logger.info(f"Collected eval batch")
+                self.debug_logger.info(f"Calculating FFT")
                 real_eval_batch_ft = np.fft.fft(real_eval_batch, axis=1)
                 syn_eval_batch_ft = np.fft.fft(syn_eval_batch, axis=1)
+
+                #Picking only the top n_components of Fourier Transformed data
+                # n_components = min(real_eval_batch.shape[1]/2, 50)
+                # real_top_n_indices = np.argsort(np.abs(real_eval_batch_ft), axis=1)[::-1][:n_components]
+                # real_eval_batch = real_eval_batch[:, real_top_n_indices, :]
+
+                # syn_top_n_indices = np.argsort(np.abs(syn_eval_batch_ft), axis=1)[::-1][:n_components]
+                # syn_eval_batch = syn_eval_batch[:, syn_top_n_indices, :]
 
                 wass_dist = np.zeros(real_eval_batch.shape[-1])
 
@@ -73,7 +92,8 @@ class FTDistEvaluator:
                     distribution_syn = np.column_stack((syn_eval_batch_real.flatten(), syn_eval_batch_imag.flatten()))
 
                     # Calculate the 2D Wasserstein distance
-                    wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn)
+                    self.debug_logger.info(f"Calculating Wasserstein Distance")
+                    wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn, n_projections=20)
 
                 num_eval_batch_samples = real_eval_batch.shape[0]
 
@@ -84,16 +104,19 @@ class FTDistEvaluator:
                     running_wass_dist_mean = (num_samples*running_wass_dist_mean + wass_dist)/(num_samples + num_eval_batch_samples)
                     num_samples += num_eval_batch_samples
 
-                eval_batch_num = 0
+                eval_batch_num = 1
                 real_eval_batches = [real_batch[1].numpy()]
                 syn_eval_batches = [syn_batch[1].numpy()]
 
+                num_batches_processed += 1
                 if self.max_batches and (num_batches_processed>=self.max_batches):
                     break
 
         real_eval_batch = np.concatenate(real_eval_batches)
         syn_eval_batch = np.concatenate(syn_eval_batches)
 
+        self.debug_logger.info(f"Collected eval batch")
+        self.debug_logger.info(f"Calculating FFT")
         real_eval_batch_ft = np.fft.fft(real_eval_batch, axis=1)
         syn_eval_batch_ft = np.fft.fft(syn_eval_batch, axis=1)
 
@@ -113,7 +136,8 @@ class FTDistEvaluator:
             distribution_syn = np.column_stack((syn_eval_batch_real.flatten(), syn_eval_batch_imag.flatten()))
 
             # Calculate the 2D Wasserstein distance
-            wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn)
+            self.debug_logger.info(f"Calculating Wasserstein Distance")
+            wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn, n_projections=20)
 
         num_eval_batch_samples = real_eval_batch.shape[0]
 
@@ -136,7 +160,9 @@ class FTDistEvaluator:
         Returns:
             np.float: Evaluation Score
         '''
+        self.logger.info("Starting the Evaluate function of FT Dist.")
         self.debug_logger.info("Starting the Evaluate function of FT Dist.")
         wass_dist = self.get_ft_wass_dist(synthetic_dataset, num_eval_batches)
+        self.logger.debug(f"Wasserstein Distance: {wass_dist}")
         self.debug_logger.debug(f"Wasserstein Distance: {wass_dist}")
         return np.mean(np.clip(calib_params/wass_dist, 0, 1))

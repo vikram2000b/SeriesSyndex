@@ -12,7 +12,8 @@ logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 class Evaluator:
-    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu', model_type = 'TCN'):
+    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, 
+                 ft_max_batches=50, device = 'cpu', model_type = 'TCN'):
         '''
         Constructor for Evaluator.
         Args:
@@ -21,6 +22,7 @@ class Evaluator:
             batch_size (int): Batch size that needs to be used for the computations. Modify this according to system's capacity.
             target_feature (int): Index of series feature which should be used as target for ML Efficacy calculation.
             max_batches (int, default: None): The maximum number of batches to be used
+            ft_max_batches (int, default: 50): The maximum number of batches to be used in FTDistEvaluator
         '''
         logger.info("Initiating the Evaluator Class.")
         debug_logger.info("Initiating the Evaluator Class.")
@@ -29,6 +31,7 @@ class Evaluator:
         self.target_feature = target_feature
         self.batch_size = batch_size
         self.max_batches = max_batches
+        self.ft_max_batches = ft_max_batches
         self.device = device
         self.model_type = model_type
         debug_logger.info(f"Number of features in datasets: {self.num_features}")
@@ -79,7 +82,7 @@ class Evaluator:
         try:
             logger.info("Creating the Fourier Transform Distance Evaluator")
             self.ft_dist_evaluator = FTDistEvaluator(real_dataset, logger=logger, debug_logger=debug_logger,
-                                                     batch_size=batch_size, max_batches = max_batches)
+                                                     batch_size=batch_size, max_batches = ft_max_batches)
         except Exception as e:
             logger.info(f"Fourier Transform Distance Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"Fourier Transform Distance Evaluator Creation Failed. Error: {str(e)}")

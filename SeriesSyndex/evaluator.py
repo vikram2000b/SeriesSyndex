@@ -122,6 +122,12 @@ class Evaluator:
                 logger.info(f"Basic Statistics Calculation Failed!! Error: {str(e)}")
                 debug_logger.info(f"Basic Statistics Calculation Failed!! Error: {str(e)}")
                 stats_score = None
+        else:
+            logger.info(f"Not calculating Basic Statistics score as \
+                Basic Statistics Evaluator could not be created!! Error: {str(e)}")
+            debug_logger.info(f"Not calculating Basic Statistics score as \
+                Basic Statistics Evaluator could not be created!! Error: {str(e)}")
+            stats_score = None
 
         if self.ml_eff_evaluator:
             try:
@@ -131,6 +137,12 @@ class Evaluator:
                 logger.info(f"ML Efficacy Calculation Failed!! Error: {str(e)}")
                 debug_logger.info(f"ML Efficacy Calculation Failed!! Error: {str(e)}")
                 ml_eff_score = None
+        else:
+            logger.info(f"Not calculating ML Efficacy score as \
+                ML Efficacy Evaluator could not be created!! Error: {str(e)}")
+            debug_logger.info(f"Not calculating ML Efficacy score as \
+                ML Efficacy Evaluator could not be created!! Error: {str(e)}")
+            stats_score = None
 
         if self.pmse_evaluator:
             try:
@@ -140,6 +152,13 @@ class Evaluator:
                 logger.info(f"PMSE Calculation Failed!! Error: {str(e)}")
                 debug_logger.info(f"PMSE Calculation Failed!! Error: {str(e)}")
                 pmse_score = None
+        else:
+            logger.info(f"Not calculating PMSE score as \
+                PMSE Evaluator could not be created!! Error: {str(e)}")
+            debug_logger.info(f"Not calculating PMSE score as \
+                PMSE Evaluator could not be created!! Error: {str(e)}")
+            stats_score = None
+
         if self.sup_cov_evaluator:
             try:
                 sup_cov_score = self.sup_cov_evaluator.evaluate(synthetic_data)
@@ -148,6 +167,12 @@ class Evaluator:
                 logger.info(f"Support Coverage Calculation Failed!! Error: {str(e)}")
                 debug_logger.info(f"Support Coverage Calculation Failed!! Error: {str(e)}")
                 sup_cov_score = None
+        else:
+            logger.info(f"Not calculating Support Coverage score as \
+                Support Coverage Evaluator could not be created!! Error: {str(e)}")
+            debug_logger.info(f"Not calculating Support Coverage score as \
+                Support Coverage Evaluator could not be created!! Error: {str(e)}")
+            stats_score = None
 
         if self.ft_dist_evaluator:
             try:
@@ -157,6 +182,12 @@ class Evaluator:
                 logger.info(f"Fourier Transform Dist Calculation Failed!! Error: {str(e)}")
                 debug_logger.info(f"Fourier Transform Dist Calculation Failed!! Error: {str(e)}")
                 ft_dist_score = None
+        else:
+            logger.info(f"Not calculating Fourier Transform Dist score as \
+                Fourier Transform Dist Evaluator could not be created!! Error: {str(e)}")
+            debug_logger.info(f"Not calculating Fourier Transform Dist score as \
+                Fourier Transform Dist could not be created!! Error: {str(e)}")
+            stats_score = None
 
        
         return {

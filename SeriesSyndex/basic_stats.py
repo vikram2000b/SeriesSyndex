@@ -127,8 +127,8 @@ class BasicStatsEvaluator:
 
             corr_mape /= n**2 - n
             score += corr_mape
-            self.logger.info(f"Correlation Score: {corr_mape}")
-            self.debug_logger.debug(f"Correlation Score: {corr_mape}")
+            self.logger.info(f"Correlation Score: {1 - corr_mape}")
+            self.debug_logger.debug(f"Correlation Score: {1 - corr_mape}")
         else:
             self.logger.info(f"Correlation Score: NA")
             self.debug_logger.debug(f"Correlation Score: NA as the data contains only 1 feature")

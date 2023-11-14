@@ -69,7 +69,7 @@ class SupportCoverageEvaluator:
             bin_cut_offs = np.linspace(min_val, max_val, num=21)
 
             # Store cut-offs in the dictionary
-            temporal_vars_cut_offs[f'temporal_var_{i+1}'] = bin_cut_offs.tolist()
+            temporal_vars_cut_offs[f'temporal_var_{i}'] = bin_cut_offs.tolist()
         self.debug_logger.debug(f"Temporal vars cut offs: {temporal_vars_cut_offs}")
         num_batches_processed = 0
         for batch in real_loader:
@@ -83,7 +83,7 @@ class SupportCoverageEvaluator:
                 temporal_var_i = temporal_vars[:, :, i]
 
                 # Bin values into buckets
-                binned_values = np.digitize(temporal_var_i, temporal_vars_cut_offs[f'temporal_var_{i+1}'], right=True)
+                binned_values = np.digitize(temporal_var_i, temporal_vars_cut_offs[f'temporal_var_{i}'], right=True)
 
                 # Update counts
                 unique, counts_per_bucket = np.unique(binned_values, return_counts=True)
@@ -119,7 +119,7 @@ class SupportCoverageEvaluator:
                 temporal_var_i = temporal_vars[:, :, i]
 
                 # Bin values into buckets
-                binned_values = np.digitize(temporal_var_i, self.temporal_vars_cut_offs[f'temporal_var_{i+1}'], right=True)
+                binned_values = np.digitize(temporal_var_i, self.temporal_vars_cut_offs[f'temporal_var_{i}'], right=True)
 
                 # Update counts
                 unique, counts_per_bucket = np.unique(binned_values, return_counts=True)
@@ -134,7 +134,9 @@ class SupportCoverageEvaluator:
         temporal_vars_coverage = []
 
         for i in range(len(temporal_vars_counts.keys())):
-            temp_var_i_coverage = np.array(temporal_vars_counts[f'temporal_var_{i}'])/(np.array(self.real_data_coverage[f'temporal_var_{i}'])+1e-6)
+            #Taking ratio of number of items in synthetic data vs real data in non-zero item bins in real data
+            temp_var_i_coverage = np.array(temporal_vars_counts[f'temporal_var_{i}'])[np.array(self.real_data_coverage[f'temporal_var_{i}'])!=0]\
+                /(np.array(self.real_data_coverage[f'temporal_var_{i}'])[np.array(self.real_data_coverage[f'temporal_var_{i}'])!=0]+1e-6)
             temp_var_i_coverage *= scaling_factor
             temp_var_i_coverage = np.mean(np.clip(temp_var_i_coverage, 0,  2))
 

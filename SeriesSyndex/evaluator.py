@@ -91,12 +91,14 @@ class Evaluator:
         
         #Calibrate FT_dist using distances between real data subsets
         subset_size = int(len(self.real_dataset)*portion_size)
+        debug_logger.debug(f"Subset size for calibration: {subset_size}")
 
         indices = list(range(len(self.real_dataset)))
 
         wass_dists = []
-
+        debug_logger.debug(f"Number of indices: {num_pairs}")
         for i in range(num_pairs):
+            debug_logger.debug(f"pair: {i}")
             np.random.shuffle(indices)
             subset_indices_1 = indices[:subset_size]
 
@@ -110,7 +112,9 @@ class Evaluator:
             ft_dist_evaluator = FTDistEvaluator(subset_1, logger=logger, debug_logger=debug_logger)
             # print(ft_dist_evaluator.get_ft_wass_dist(subset_2))
             wass_dists.append(ft_dist_evaluator.get_ft_wass_dist(subset_2))
+            debug_logger.debug(f"Wass Dist for the pair: {wass_dists[-1]}")
 
+        debug_logger.debug(f"Final Wasserstein Dists: {wass_dists}, Mean Wasserstein Dists: {np.mean(wass_dists)}")
         return {'ft_dist_params': np.mean(np.array(wass_dists), axis=0)}
 
     def evaluate(self, synthetic_data, cat_cols=[]):

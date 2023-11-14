@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from dython.nominal import associations
 
 class BasicStatsEvaluator:
-    def __init__(self, real_dataset, logger, debug_logger, num_workers = 1, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_workers = 1, batch_size = 256, max_batches = None):
         '''
         Contains fucntions to evaluate closeness to real data in terms of baisc stats like mean, median, and standard deviation
         Args:
@@ -18,6 +18,7 @@ class BasicStatsEvaluator:
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
+        self.max_batches = max_batches
     
     def mape (self, vector_a, vector_b):
         return abs(vector_a-vector_b)/abs(vector_a+1e-6)
@@ -41,7 +42,7 @@ class BasicStatsEvaluator:
         running_mean_sq = None
         running_log_corr = None
         num_samples = 0
-        
+        num_batches_processed = 0
         for batch in dataloader:
             static_vars = batch[0].numpy()
             temporal_vars = batch[1].numpy()
@@ -64,6 +65,9 @@ class BasicStatsEvaluator:
                 running_log_corr = (num_samples*running_log_corr + batch_log_corr)/(num_samples+num_batch_samples)
             
             num_samples += num_batch_samples
+            num_batches_processed += 1
+            if self.max_batches and (num_batches_processed >= self.max_batches):
+                break
             # print(batch)
 
         final_std = np.sqrt(running_mean_sq - np.square(running_mean))

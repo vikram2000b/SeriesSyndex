@@ -2,14 +2,16 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 class SupportCoverageEvaluator:
-    def __init__(self, real_dataset, logger, debug_logger, num_bins=20, num_workers = 2, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_bins=20, num_workers = 2, batch_size = 256,
+                 max_batches = None):
         '''
-        Contains fucntions to evaluate closeness to real data in terms of number of samples in different numerical ranges
+        Contains funcions to evaluate closeness to real data in terms of number of samples in different numerical ranges
         Args:
             real_dataset (torch.utils.data.Dataset): The real dataset which is used to evaluate the given syntehtic data.
-            num_bins: number of bins to divide the data into and compare the number of samples in each bin for real and synthetic data
-            num_workers: number of CPU processes to use for loading the dataset
-            batch_size: batch_size for loading the data, adjust according to your machine
+            num_bins (int): number of bins to divide the data into and compare the number of samples in each bin for real and synthetic data
+            num_workers (int): number of CPU processes to use for loading the dataset
+            batch_size (int): batch_size for loading the data, adjust according to your machine
+            max_batches (int): Maximum number of batches to use for training the evaluator.
         '''
 
         self.logger = logger
@@ -18,6 +20,7 @@ class SupportCoverageEvaluator:
         self.num_workers = num_workers
         self.batch_size = batch_size
         self.num_bins = num_bins
+        self.max_batches = max_batches
         
         self.temporal_vars_min, self.temporal_vars_max = self.get_real_data_range()
 
@@ -29,7 +32,7 @@ class SupportCoverageEvaluator:
 
         real_loader = DataLoader(self.real_dataset, #num_workers=self.num_workers, 
                                  batch_size=self.batch_size)
-        
+        num_batches_processed = 0
         for batch in real_loader:
 #             print(batch[0].size())
             static_vars = batch[0].numpy()
@@ -46,6 +49,9 @@ class SupportCoverageEvaluator:
                 temp_temporal_vars_max = batch_temporal_vars_max
             else:
                 temp_temporal_vars_max = np.maximum(temp_temporal_vars_max, batch_temporal_vars_max)
+            num_batches_processed += 1
+            if self.max_batches and (num_batches_processed >= self.max_batches):
+                break
 
         return temp_temporal_vars_min, temp_temporal_vars_max
 
@@ -63,6 +69,7 @@ class SupportCoverageEvaluator:
             # Store cut-offs in the dictionary
             temporal_vars_cut_offs[f'temporal_var_{i+1}'] = bin_cut_offs.tolist()
         self.debug_logger.debug(f"Temporal vars cut offs: {temporal_vars_cut_offs}")
+        num_batches_processed = 0
         for batch in real_loader:
             static_vars = batch[0].numpy()
             temporal_vars = batch[1].numpy()
@@ -82,6 +89,10 @@ class SupportCoverageEvaluator:
                 counts[unique - 1] += counts_per_bucket
 
                 temporal_vars_counts[f'temporal_var_{i}'] = counts
+
+            num_batches_processed += 1
+            if self.max_batches and (num_batches_processed >= self.max_batches):
+                break
         self.debug_logger.debug(f"Temporal Var Counts: {temporal_vars_counts}")
         return temporal_vars_cut_offs, temporal_vars_counts
 
@@ -94,7 +105,7 @@ class SupportCoverageEvaluator:
                                 batch_size=self.batch_size)    
 
         temporal_vars_counts = {}
-
+        num_batches_processed = 0
         for batch in syn_loader:
             static_vars = batch[0].numpy()
             temporal_vars = batch[1].numpy()
@@ -114,6 +125,9 @@ class SupportCoverageEvaluator:
                 counts[(unique[unique<=self.num_bins]) - 1] += counts_per_bucket[unique<=self.num_bins]
 
                 temporal_vars_counts[f'temporal_var_{i}'] = counts 
+            num_batches_processed += 1
+            if self.max_batches and (num_batches_processed >= self.max_batches):
+                break
 
         temporal_vars_coverage = []
 

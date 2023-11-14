@@ -10,8 +10,7 @@ from SeriesSyndex.data_utils import MLEfficacyDataset
 class MLEfficacyEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128, target_feature = 0,
-                 num_channels = 64, kernel_size = 3,
-                 model_type = 'TCN'):
+                 num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None):
         '''
         Constructor for ML Efficacy Evaluator. 
         Args:
@@ -45,6 +44,7 @@ class MLEfficacyEvaluator:
         self.debug_logger = debug_logger
         self.num_channels = num_channels
         self.kernel_size = kernel_size
+        self.max_batches = max_batches
 
         
     
@@ -168,6 +168,7 @@ class MLEfficacyEvaluator:
         for epoch in range(self.epochs):
             model.train()
             losses = []
+            num_batches_processed = 0
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
                 
@@ -178,6 +179,9 @@ class MLEfficacyEvaluator:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                num_batches_processed += 1
+                if self.max_batches and (num_batches_processed >= self.max_batches):
+                    break
             val_eval = self.eval_model(model, val_data_loader)
 
             scheduler.step(val_eval['loss'])

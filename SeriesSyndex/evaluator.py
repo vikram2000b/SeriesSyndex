@@ -29,7 +29,7 @@ class Evaluator:
             logger.info("Creating the Basic Statistics Evaluator")
             debug_logger.info("Creating the Basic Statistics Evaluator")
             self.stats_evaluator = BasicStatsEvaluator(real_dataset, logger=logger, debug_logger=debug_logger, 
-                                                    batch_size=batch_size)
+                                                    batch_size=batch_size, max_batches = max_batches)
         except Exception as e:
             logger.info(f"Basic Stats Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"Basic Stats Evaluator Creation Failed. Error: {str(e)}")
@@ -38,7 +38,7 @@ class Evaluator:
         try:
             logger.info("Creating the pMSE Evaluator")
             self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, 
-                                                debug_logger=debug_logger, batch_size=batch_size)
+                                                debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches)
         except Exception as e:
             logger.info(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
@@ -48,7 +48,7 @@ class Evaluator:
             logger.info("Creating the ML Efficacy Evaluator")
             self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, 
                                                         logger=logger, debug_logger=debug_logger,
-                                                        batch_size=batch_size)
+                                                        batch_size=batch_size, max_batches = max_batches)
         except Exception as e:
             logger.info(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
@@ -57,7 +57,7 @@ class Evaluator:
         try:
             logger.info("Creating the Support Coverage Evaluator")
             self.sup_cov_evaluator = SupportCoverageEvaluator(real_dataset, logger=logger, 
-                                                              debug_logger=debug_logger, batch_size=batch_size)
+                                                              debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches)
         except Exception as e:
             logger.info(f"Support Coverage Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"Support Coverage Creation Failed. Error: {str(e)}")
@@ -66,7 +66,7 @@ class Evaluator:
         try:
             logger.info("Creating the Fourier Transform Distance Evaluator")
             self.ft_dist_evaluator = FTDistEvaluator(real_dataset, logger=logger, debug_logger=debug_logger,
-                                                     batch_size=batch_size)
+                                                     batch_size=batch_size, max_batches = max_batches)
         except Exception as e:
             logger.info(f"Fourier Transform Distance Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"Fourier Transform Distance Evaluator Creation Failed. Error: {str(e)}")

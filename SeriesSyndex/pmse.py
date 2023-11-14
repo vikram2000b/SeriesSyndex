@@ -18,7 +18,11 @@ class pMSEEvaluator:
         '''
         Constructor ofr pMSE Evaluator.
         Args:
-            real_dataset 
+            real_dataset(torch.utils.data.Dataset): The real dataset which is used to evaluate the given syntehtic data.
+            num_features (int): Number of features in the data
+            max_batches (int): max_batches to use for score calculation for both the real and synthetic data 
+            logger (logging.Logger): logger for basic logging
+            debug_logger (logging.Logger): logger for more exhaustive debug logging 
         '''
         self.debug_logger = debug_logger
         self.debug_logger.info("Initiating the ML Efficacy Evaluator Class.")

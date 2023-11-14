@@ -26,6 +26,9 @@ class MLEfficacyEvaluator:
             num_channels (int): Number of channels for the TCN model.
             kernel_size (int): Kernel Size for the TCN Model
             model_type (string): Model type to use for evaluation. Options - TCN, LSTM. 
+            max_batches (int): max_batches to use for score calculation for both the real and synthetic data 
+            logger (logging.Logger): logger for basic logging
+            debug_logger (logging.Logger): logger for more exhaustive debug logging
         '''
         # TODO: Wrap the model parameters into a dictionary and take that in the argument.
         self.debug_logger = debug_logger

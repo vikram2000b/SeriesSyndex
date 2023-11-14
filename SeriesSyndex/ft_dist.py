@@ -88,7 +88,8 @@ class FTDistEvaluator:
                 real_eval_batches = [real_batch[1].numpy()]
                 syn_eval_batches = [syn_batch[1].numpy()]
 
-                if self.max_batches and (num_batches_processed>=self.max_batches)
+                if self.max_batches and (num_batches_processed>=self.max_batches):
+                    break
 
         real_eval_batch = np.concatenate(real_eval_batches)
         syn_eval_batch = np.concatenate(syn_eval_batches)

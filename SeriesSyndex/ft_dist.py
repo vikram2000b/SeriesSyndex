@@ -3,19 +3,23 @@ from torch.utils.data import DataLoader
 import ot
 
 class FTDistEvaluator:
-    def __init__(self, real_dataset, logger, debug_logger, num_workers = 2, batch_size = 256):
+    def __init__(self, real_dataset, logger, debug_logger, num_workers = 2, batch_size = 256, max_batches=None):
         '''
         Contains fucntions to evaluate closeness to real data after fourier transform
         Args:
             real_dataset (torch.utils.data.Dataset): The real dataset which is used to evaluate the given syntehtic data.
             num_workers: number of CPU processes to use for loading the dataset
             batch_size: batch_size for loading the data, adjust according to your machine
+            max_batches: max_batches to use for score calculation for both the real and synthetic data 
+            logger: logger for basic logging
+            debug_logger: logger for more exhaustive debug logging
         '''
         self.logger = logger
         self.debug_logger = debug_logger
         self.real_dataset = real_dataset
         self.num_workers = num_workers
         self.batch_size = batch_size
+        self.max_batches = max_batches
 
     def get_ft_wass_dist(self, synthetic_dataset, num_eval_batches=1):
         '''
@@ -38,6 +42,7 @@ class FTDistEvaluator:
         running_wass_dist_mean = None
         num_samples = None
 
+        num_batches_processed = 0
         for real_batch, syn_batch in zip(real_loader, syn_loader):
             if  eval_batch_num < num_eval_batches:
                 #accumulate temporal variable batches for evaluation
@@ -82,6 +87,8 @@ class FTDistEvaluator:
                 eval_batch_num = 0
                 real_eval_batches = [real_batch[1].numpy()]
                 syn_eval_batches = [syn_batch[1].numpy()]
+
+                if self.max_batches and (num_batches_processed>=self.max_batches)
 
         real_eval_batch = np.concatenate(real_eval_batches)
         syn_eval_batch = np.concatenate(syn_eval_batches)

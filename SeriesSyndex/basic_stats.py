@@ -55,7 +55,9 @@ class BasicStatsEvaluator:
 
             batch_mean = np.mean(temporal_vars, (0, 1))
             batch_mean_sq = np.mean(temporal_vars_sq, (0, 1))
-            batch_log_corr = self.log_corr(temporal_vars.reshape((-1, temporal_vars.shape[-1])), cat_cols)
+
+            if temporal_vars.shape[-1] > 1:
+                batch_log_corr = self.log_corr(temporal_vars.reshape((-1, temporal_vars.shape[-1])), cat_cols)
 
             if running_mean is None:
                 running_mean = batch_mean

@@ -12,7 +12,16 @@ logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 class Evaluator:
-    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu'):
+    def __init__(self, real_dataset, num_features, batch_size = 256, target_feature = 0, max_batches = None, device = 'cpu', model_type = 'TCN'):
+        '''
+        Constructor for Evaluator.
+        Args:
+            real_dataset (torch.utils.data.Dataset): The real dataset which will be used to evaluate the given syntehtic data.
+            num_featuress (int): The number of temporal features in the dataset
+            batch_size (int): Batch size that needs to be used for the computations. Modify this according to system's capacity.
+            target_feature (int): Index of series feature which should be used as target for ML Efficacy calculation.
+            max_batches (int, default: None): The maximum number of batches to be used
+        '''
         logger.info("Initiating the Evaluator Class.")
         debug_logger.info("Initiating the Evaluator Class.")
         self.real_dataset = real_dataset
@@ -21,6 +30,7 @@ class Evaluator:
         self.batch_size = batch_size
         self.max_batches = max_batches
         self.device = device
+        self.model_type = model_type
         debug_logger.info(f"Number of features in datasets: {self.num_features}")
 
         logger.info("Calibrating the parameters")
@@ -40,7 +50,7 @@ class Evaluator:
             logger.info("Creating the pMSE Evaluator")
             self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, 
                                                 debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches,
-                                                device = device)
+                                                device = device, model_type= model_type)
         except Exception as e:
             logger.info(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"PMSE Evaluator Creation Failed. Error: {str(e)}")
@@ -51,7 +61,7 @@ class Evaluator:
             self.ml_eff_evaluator = MLEfficacyEvaluator(real_dataset, num_features=self.num_features, 
                                                         logger=logger, debug_logger=debug_logger,
                                                         batch_size=batch_size, max_batches = max_batches,
-                                                        device = device)
+                                                        device = device, model_type=model_type)
         except Exception as e:
             logger.info(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")
             debug_logger.debug(f"ML Efficacy Evaluator Creation Failed. Error: {str(e)}")

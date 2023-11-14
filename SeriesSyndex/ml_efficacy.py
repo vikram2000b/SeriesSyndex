@@ -10,7 +10,8 @@ from SeriesSyndex.data_utils import MLEfficacyDataset
 class MLEfficacyEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128, target_feature = 0,
-                 num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu'):
+                 num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu',
+                 early_stopping_patience = 5):
         '''
         Constructor for ML Efficacy Evaluator. 
         Args:
@@ -49,6 +50,7 @@ class MLEfficacyEvaluator:
         self.kernel_size = kernel_size
         self.max_batches = max_batches
         self.device = device
+        self.early_stopping_patience = early_stopping_patience
 
         
     
@@ -168,11 +170,12 @@ class MLEfficacyEvaluator:
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         loss_fn = nn.MSELoss()
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = False)
-
+        best_loss = np.inf
         for epoch in range(self.epochs):
             model.train()
             losses = []
             num_batches_processed = 0
+            
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
                 
@@ -189,6 +192,16 @@ class MLEfficacyEvaluator:
             val_eval = self.eval_model(model, val_data_loader)
 
             scheduler.step(val_eval['loss'])
+
+            if val_eval['loss'] < best_loss:
+                best_loss = val_eval['loss']
+                cur_patience = 0
+            else:
+                cur_patience += 1
+                if cur_patience >= self.early_stopping_patience:
+                    self.debug_logger.debug(f'Early stopping after {epoch+1} epochs.')
+                    break
+
 
             self.debug_logger.debug(f"Training Epoch: {epoch}, Train Loss: {np.mean(losses)}, \
                   Val Loss: {val_eval['loss']}")

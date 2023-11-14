@@ -14,7 +14,8 @@ from SeriesSyndex.models import LSTMClassifier, TCNClassifier
 class pMSEEvaluator:
     def __init__(self, real_dataset, num_features, logger, debug_logger, lstm_hidden_size = 64, num_layers = 4,
                  num_loader_workers = 1, epochs = 20, lr = 0.01, batch_size = 128,
-                    num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu'):
+                    num_channels = 64, kernel_size = 3, model_type = 'TCN', max_batches = None, device = 'cpu',
+                    early_stopping_patience = 5):
         '''
         Constructor ofr pMSE Evaluator.
         Args:
@@ -46,6 +47,7 @@ class pMSEEvaluator:
         self.lr = lr
         self.batch_size = batch_size
         self.max_batches = max_batches
+        self.early_stopping_patience = early_stopping_patience
         
     def reset_weights(self):
         '''Function to re-initialize the weights of the model.'''
@@ -122,11 +124,12 @@ class pMSEEvaluator:
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         loss_fn = nn.BCELoss()
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, factor=0.1, verbose = False)
-
+        best_loss = np.inf
         for epoch in range(self.epochs):
             self.model.train()
             losses = []
             num_batches_processed = 0
+            
             for batch in train_data_loader:
                 (static_vars, series_vars), labels = batch
                 outputs = self.model(series_vars.float().to(self.device))
@@ -142,6 +145,15 @@ class pMSEEvaluator:
             val_eval = self.eval_model(val_data_loader)
 
             scheduler.step(val_eval['loss'])
+
+            if val_eval['loss'] < best_loss:
+                best_loss = val_eval['loss']
+                cur_patience = 0
+            else:
+                cur_patience += 1
+                if cur_patience >= self.early_stopping_patience:
+                    self.debug_logger.debug(f'Early stopping after {epoch+1} epochs.')
+                    break
 
             self.debug_logger.debug(f"Training Epoch: {epoch}, Train Loss: {np.mean(losses)}, \
                   Val Loss: {val_eval['loss']}, Val Acc: {val_eval['accuracy']}")
@@ -169,11 +181,11 @@ class pMSEEvaluator:
         predicted_probs = np.concatenate(predicted_probs, axis=0)
 
         accuracy = torch.sum(predicted_labels == target_labels) / target_labels.size(0)
-        auc = roc_auc_score(target_labels.cpu().numpy(), predicted_probs)
+        #auc = roc_auc_score(target_labels.cpu().numpy(), predicted_probs)
         test_loss = np.mean(losses)
         return {
             "loss": test_loss,
             "accuracy": accuracy,
-            "auc": auc
+            #"auc": auc
         }
 

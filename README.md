@@ -47,7 +47,8 @@ real_dataset, syn_dataset = random_split(
 
 evaluator = Evaluator(real_dataset=real_dataset, num_features = series_x.shape[-1])
 
-print(evaluator.evaluate(syn_dataset))
+# cat_cols is the list of the indexes of categorical columns, default value = []
+print(evaluator.evaluate(syn_dataset, cat_cols=[]))
 ```
 Here, we have used a subset of data as the synthetic data for evaluation. Also, the dataset is expected to return two variables, one is representing the static variables and other time-series variables. 
 The real dataset is passed to the evaluator when it is initialized and synthetic data is passed while calling ```evaluate``` function.

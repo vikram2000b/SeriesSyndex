@@ -57,12 +57,14 @@ class BasicStatsEvaluator:
             if running_mean is None:
                 running_mean = batch_mean
                 running_mean_sq = batch_mean_sq
-                running_log_corr = batch_log_corr
+                if temporal_vars.shape[-1] > 1:
+                    running_log_corr = batch_log_corr
             else:
                 #TO DO - Solve the problem of overflow in larger datasets
                 running_mean = (num_samples*running_mean + batch_mean)/(num_samples+num_batch_samples)
                 running_mean_sq = (num_samples*running_mean_sq + batch_mean_sq)/(num_samples+num_batch_samples)
-                running_log_corr = (num_samples*running_log_corr + batch_log_corr)/(num_samples+num_batch_samples)
+                if temporal_vars.shape[-1] > 1:
+                    running_log_corr = (num_samples*running_log_corr + batch_log_corr)/(num_samples+num_batch_samples)
             
             num_samples += num_batch_samples
             num_batches_processed += 1
@@ -113,24 +115,32 @@ class BasicStatsEvaluator:
         self.logger.info(f"Std Score: {1 - np.sum(std_mape)/len(real_std)}")
         self.debug_logger.debug(f"Std Score: {1 - np.sum(std_mape)/len(real_std)}")
 
-        corr_mape = np.sum(np.clip(self.mape(real_log_corr, syn_log_corr).flatten(), 0, 1))
-        self.debug_logger.debug(f"Corr Mape: {corr_mape}")
+        if real_log_corr is not None:
+            corr_mape = np.sum(np.clip(self.mape(real_log_corr, syn_log_corr).flatten(), 0, 1))
+            self.debug_logger.debug(f"Corr Mape: {corr_mape}")
 
-        n = real_log_corr.shape[-1]
-        self.debug_logger.debug(f"Corr Shape: {n}")
+            n = real_log_corr.shape[-1]
+            self.debug_logger.debug(f"Corr Shape: {n}")
 
-        corr_mape /= n**2 - n
-        score += corr_mape
-        self.logger.info(f"Correlation Score: {corr_mape}")
-        self.debug_logger.debug(f"Correlation Score: {corr_mape}")
+            corr_mape /= n**2 - n
+            score += corr_mape
+            self.logger.info(f"Correlation Score: {corr_mape}")
+            self.debug_logger.debug(f"Correlation Score: {corr_mape}")
+        else:
+            self.logger.info(f"Correlation Score: NA")
+            self.debug_logger.debug(f"Correlation Score: NA as the data contains only 1 feature")
         # score = 1-score if score<=1.0 else 0.0
 
         # TODO - Cache the mean, std & log correlation matrix of real data after first execution
         
         # median_mape = np.clip(mape(real_median, fake_median), 0, 1)
         # score += np.sum(median_mape)
-        score /= 3 #+ len(real_median)
+        # score /= 3 #+ len(real_median)
 
+        if real_log_corr is not None:
+            score /= 3
+        else:
+            score /= 2
 
         score = 1-score if score<=1.0 else 0.0
         #print('1:', score)

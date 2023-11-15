@@ -66,7 +66,7 @@ The evaluator aggregates 5 different metrics, which measure different aspects of
 This score employs an adversary, which is trained to distinguish between the real data and synthetic data. We then measure the accuracy of the adversary to evaluate the goodness of synthetic data. If an adversary can easily distinguish between real data and synthetic data, the PMSE score will be low i.e. closer to 0. And if the adversary can not distinguish between real and synthetic data, the PMSE Score will be high i.e. closer 1. 
 This evaluator trains a neural network to differentiate between real and synthetic data. The synthetic data is assigned a label 1, and real data is assigned a label 0. The training set is created by combining both real and synthetic data with given assigned labels. The accuracy on the test samples is used to calculate the score. The score is calculated as below:
 
-$pmse\_score = 2*(1 - max(accuracy, 0.5))$
+$pmseScore = 2*(1 - max(accuracy, 0.5))$
 
 Here, an accuracy of 0.5 or less means that model has failed to learn to distinguish between real and synthetic samples, leading to score of 1.
 We have provided options for different models as adversary. Following are the available model:
@@ -103,7 +103,7 @@ This score measure the closeness of simple statistics like mean, standard deviat
 
 A dataset of shape (num_samples, num_time_steps, num_features) is converted into tabular data of shape (num_samples*num_time_steps, num_features) and then mean of all the features, standard deviation of all the features, and correlation within all the features is calculated. If categorical columns exist, Theil's U is used as a substitute for correlation among them.
 
-$basic\_stats\_score = 1 - \frac{1}{3}(MAPE(real\_mean, syn\_mean)+MAPE(real\_std, syn\_std)+MAPE(real\_corr, syn\_corr))$
+$BasicStatsScore = 1 - \frac{1}{3}(MAPE(realmean, synmean)+MAPE(realstd, synstd)+MAPE(realcorr, syncorr))$
 
 Log of the values in correlation matrix is used to avoid instability due to extremely small correlation values.
 
@@ -132,7 +132,7 @@ A dataset of shape (num_samples, num_time_steps, num_features) is converted into
 
 If the size of real and synthetic data is same,
 
-$sup\_cov\_score = \frac{1}{num\_features}\frac{1}{num\_bins}\sum_{i}\frac{num\_samples\_syn\_bin\_i}{num\_samples\_real\_bin\_i}$
+$supCovScore = \frac{1}{numfeatures}\frac{1}{numbins}\sum_{i}\frac{NumSamplesSynBin\_i}{NumSamplesRealBin\_i}$
 
 
 Here is an example code on how to separately use the Support Coverage Evaluator.
@@ -158,7 +158,7 @@ print(f"Support Coverage Score of the synthetic data: {score}")
 ### Machine Learning Efficacy Evaluator
 This score measures how useful the synthetic data is for machine learning purposes. Real train set is used to train a ML model (we have implemented LSTM and TCN, same as in PMSE Evaluator) and its loss on real test set is recorded. We then train the same ML model on synthetic data, and test how close the performance on real test set gets to that of real train set.
 
-$ml\_efficay\_score = 1 - MAPE(real\_loss, syn\_loss)$
+$MLEfficayScore = 1 - MAPE(realloss, synloss)$
 
 Here is an example code on how to separately use the ML Efficacy Evaluator.
 
@@ -186,7 +186,7 @@ This score measures the similarity between the Fourier Transforms of real and sy
 
 A dataset of shape (num_samples, num_time_steps, num_features) on Fourier Transform yeilds a array of the same shape but with complex numbers. Top n (default:50) of this transformed data aree chosen and this is converted into tabular data of shape (num_samples*n_components, num_features). Real and imaginary part are treated as x, y coordinates and Wasserstein distance is measured between real transformed data and synthetic transformed data. To get the score, this distance is divided by wasserstein distance between subsets of real data.
 
-$ft\_dist\_score = \frac{1}{num\_features}\sum_i\frac{wass\_dist(real, syn)}{wass\_dist(real, real)}$
+$FTDistScore = \frac{1}{numfeatures}\sum_i\frac{wassdist(real, syn)}{wassdist(real, real)}$
 
 ```
 from SeriesSyndex.ft_dist import FTDistEvaluator

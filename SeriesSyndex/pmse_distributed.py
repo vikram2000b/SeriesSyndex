@@ -46,13 +46,13 @@ class pMSEEvaluator:
         self.num_workers = num_loader_workers
         self.device = device
         if model_type == 'TCN':
-            self.model = TCNClassifier(input_size=num_features, num_channels=num_channels,
-                                      kernel_size = kernel_size, num_layers = num_layers).to(device)
+            self.model = DDP(TCNClassifier(input_size=num_features, num_channels=num_channels,
+                                      kernel_size = kernel_size, num_layers = num_layers))#.to(device)
         elif model_type == 'LSTM':
-            self.model = LSTMClassifier(input_size=num_features, 
+            self.model = DDP(LSTMClassifier(input_size=num_features, 
                                                 hidden_size=lstm_hidden_size,
                                                 num_layers=num_layers
-                                                ).to(device)
+                                                ))#.to(device)
         else:
             self.logger.info(f"The model type {self.model_type} is not supported.")
             self.debug_logger.debug(f"The model type {self.model_type} is not supported.")

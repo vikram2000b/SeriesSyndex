@@ -53,7 +53,7 @@ print(evaluator.evaluate(syn_dataset, cat_cols=[]))
 
 ## Components of the Score
 The evaluator aggregates 5 different metrics, which measure different aspects of the synthetic data. The metrics/evaluators are as follows:
-1. PMSE Evaluator (Adversary Success Rate Evaluator) - Production Ready
+1. PMSE Evaluator (Adversary Success Rate Evaluator) - **Production Ready**
 2. Basic Statics Evaluator
 3. Support Coverage Evaluator
 4. ML Efficacy
@@ -80,9 +80,10 @@ logger = setup_logger("run.log", level = logging.INFO)
 debug_logger = setup_logger("debug.log", level = logging.DEBUG)
 
 real_dataset = ... # A pytorch Dataset.
+num_features = ... # Number of features in the time series component of the dataset
 self.pmse_evaluator = pMSEEvaluator(real_dataset, num_features=self.num_features, logger=logger, 
-                                                debug_logger=debug_logger, batch_size=batch_size, max_batches = max_batches,
-                                                device = device, model_type= model_type)
+                                                debug_logger=debug_logger, batch_size=256, max_batches = None,
+                                                device = 'cuda', model_type= 'TCN')
 
 synthetic_dataset = ... # the synthetic dataset for measurement
 score = self.pmse_evaluator.evaluate(synthetic_data)

@@ -90,6 +90,11 @@ score = self.pmse_evaluator.evaluate(synthetic_data)
 
 print(f"PMSE Score of the synthetic data: {score}")
 ```
+
+### Scalability plan for PMSE
+The PMSE is currently running on a single machine and only using Single GPU. It can be further scaled with Distributed Training.
+The ```pmse_distributed.py``` has the code for distributed training. The code is not yet complete and has not been tested yet due to resource contraints.
+
 ###
 
 

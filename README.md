@@ -51,6 +51,9 @@ evaluator = Evaluator(real_dataset=real_dataset, num_features = series_x.shape[-
 print(evaluator.evaluate(syn_dataset, cat_cols=[]))
 ```
 
+Here, we have used a subset of data as the synthetic data for evaluation. Also, the dataset is expected to return two variables, one is representing the static variables and other time-series variables. 
+The real dataset is passed to the evaluator when it is initialized and synthetic data is passed while calling ```evaluate``` function.
+
 ## Components of the Score
 The evaluator aggregates 5 different metrics, which measure different aspects of the synthetic data. The metrics/evaluators are as follows:
 1. PMSE Evaluator (Adversary Success Rate Evaluator) - **Production Ready**
@@ -91,8 +94,9 @@ score = pmse_evaluator.evaluate(synthetic_data)
 print(f"PMSE Score of the synthetic data: {score}")
 ```
 
-Here, we have used a subset of data as the synthetic data for evaluation. Also, the dataset is expected to return two variables, one is representing the static variables and other time-series variables. 
-The real dataset is passed to the evaluator when it is initialized and synthetic data is passed while calling ```evaluate``` function.
+### Scalability plan for PMSE
+The PMSE is currently running on a single machine and only using Single GPU. It can be further scaled with Distributed Training.
+The ```pmse_distributed.py``` has the code for distributed training. The code is not yet complete and has not been tested yet due to resource constraints.
 
 ### Basic Stats Evaluator
 This score measure the closeness of simple statistics like mean, standard deviation, and correlation of all the features of synthetic data to that of real data. 

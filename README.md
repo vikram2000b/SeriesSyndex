@@ -103,9 +103,7 @@ This score measure the closeness of simple statistics like mean, standard deviat
 
 A dataset of shape (num_samples, num_time_steps, num_features) is converted into tabular data of shape (num_samples*num_time_steps, num_features) and then mean of all the features, standard deviation of all the features, and correlation within all the features is calculated. If categorical columns exist, Theil's U is used as a substitute for correlation among them.
 
-```
 $basic_stats_score = 1 - \frac{1}{3}(MAPE(real_mean, syn_mean)+MAPE(real_std, syn_std)+MAPE(real_corr, syn_corr))$
-```
 
 Log of the values in correlation matrix is used to avoid instability due to extremely small correlation values.
 
@@ -190,9 +188,7 @@ This score measures the similarity between the Fourier Transforms of real and sy
 
 A dataset of shape (num_samples, num_time_steps, num_features) on Fourier Transform yeilds a array of the same shape but with complex numbers. Top n (default:50) of this transformed data aree chosen and this is converted into tabular data of shape (num_samples*n_components, num_features). Real and imaginary part are treated as x, y coordinates and Wasserstein distance is measured between real transformed data and synthetic transformed data. To get the score, this distance is divided by wasserstein distance between subsets of real data.
 
-```
-$ft_dist_score = \frac{1}{num_features}\sum_i\frac{wass_dist(real, syn)}{wass_dist(real, real)}$
-```
+$ft\_dist\_score = \frac{1}{num\_features}\sum_i\frac{wass\_dist(real, syn)}{wass\_dist(real, real)}$
 
 ```
 from SeriesSyndex.ft_dist import FTDistEvaluator

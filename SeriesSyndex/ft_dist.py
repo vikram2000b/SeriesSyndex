@@ -69,23 +69,23 @@ class FTDistEvaluator:
                 syn_eval_batch_ft = np.fft.fft(syn_eval_batch, axis=1)
 
                 #Picking only the top n_components of Fourier Transformed data
-                n_components = min(real_eval_batch.shape[1]//2, 100)
+                n_components = min(real_eval_batch.shape[1]//2, 50)
                 real_top_n_indices = np.argsort(np.abs(real_eval_batch_ft), axis=1)[:, -n_components:, :]
                 real_eval_batch = np.take_along_axis(real_eval_batch, real_top_n_indices, axis = 1)
-
+                # print(real_eval_batch.shape)
                 syn_top_n_indices = np.argsort(np.abs(syn_eval_batch_ft), axis=1)[:, -n_components:, :]
                 syn_eval_batch = np.take_along_axis(syn_eval_batch, syn_top_n_indices, axis = 1)
-
+                # print(syn_eval_batch.shape)
                 wass_dist = np.zeros(real_eval_batch.shape[-1])
 
-                for i in range(real_eval_batch.shape[-1]):
+                for feat_num in range(real_eval_batch.shape[-1]):
                     #separating the real and imaginary parts of fourier transformed ith temporal variable
-                    real_eval_batch_real = np.real(real_eval_batch_ft[:, :, i])
-                    real_eval_batch_imag = np.imag(real_eval_batch_ft[:, :, i])
-#                     print(real_eval_batch_real.shape)
+                    real_eval_batch_real = np.real(real_eval_batch_ft[:, :, feat_num])
+                    real_eval_batch_imag = np.imag(real_eval_batch_ft[:, :, feat_num])
+                    # print(real_eval_batch_real.shape)
 
-                    syn_eval_batch_real = np.real(syn_eval_batch_ft[:, :, i])
-                    syn_eval_batch_imag = np.imag(syn_eval_batch_ft[:, :, i])
+                    syn_eval_batch_real = np.real(syn_eval_batch_ft[:, :, feat_num])
+                    syn_eval_batch_imag = np.imag(syn_eval_batch_ft[:, :, feat_num])
 
                     # Combine real and imaginary parts into a 2D array
                     distribution_real = np.column_stack((real_eval_batch_real.flatten(), real_eval_batch_imag.flatten()))
@@ -93,7 +93,7 @@ class FTDistEvaluator:
 
                     # Calculate the 2D Wasserstein distance
                     self.debug_logger.info(f"Calculating Wasserstein Distance")
-                    wass_dist[i] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn, n_projections=20)
+                    wass_dist[feat_num] = ot.sliced_wasserstein_distance(distribution_real, distribution_syn, n_projections=20)
 
                 num_eval_batch_samples = real_eval_batch.shape[0]
 

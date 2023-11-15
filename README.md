@@ -51,6 +51,9 @@ evaluator = Evaluator(real_dataset=real_dataset, num_features = series_x.shape[-
 print(evaluator.evaluate(syn_dataset, cat_cols=[]))
 ```
 
+Here, we have used a subset of data as the synthetic data for evaluation. Also, the dataset is expected to return two variables, one is representing the static variables and other time-series variables. 
+The real dataset is passed to the evaluator when it is initialized and synthetic data is passed while calling ```evaluate``` function.
+
 ## Components of the Score
 The evaluator aggregates 5 different metrics, which measure different aspects of the synthetic data. The metrics/evaluators are as follows:
 1. PMSE Evaluator (Adversary Success Rate Evaluator) - **Production Ready**
@@ -100,8 +103,7 @@ The ```pmse_distributed.py``` has the code for distributed training. The code is
 
 
 
-Here, we have used a subset of data as the synthetic data for evaluation. Also, the dataset is expected to return two variables, one is representing the static variables and other time-series variables. 
-The real dataset is passed to the evaluator when it is initialized and synthetic data is passed while calling ```evaluate``` function.
+
 
 ### Testing (Unit Tests)
 We use ```pytest``` to run the unit test. You will have to install pytest using ```pip install pytest``` and then run this command to execute all unit test.

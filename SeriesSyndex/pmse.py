@@ -3,8 +3,9 @@ import torch.nn.init as init
 from torch import nn
 import torch
 import numpy as np
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 from sklearn.metrics import roc_auc_score
+import random
 
 
 from SeriesSyndex.data_utils import pMSEDataset
@@ -77,14 +78,36 @@ class pMSEEvaluator:
         '''
         # reset the weights of the model
         self.reset_weights()
-
+        balanced_real_data = None
+        balanced_syn_data = None
         if balance_dataset:
-            # TODO
-            pass
+            # balance the dataset to have equal and uniform sizes. It is done to avoid any bias in the classifier.
+            real_data_len = len(self.real_dataset)
+            syn_data_len = len(synthetic_dataset)
+            if(real_data_len > syn_data_len):
+                # synthetic data is smaller, trim the real_data to have the length of synthetic data
+                n = syn_data_len  
+                total_items = real_data_len
+                sampled_indices = random.sample(range(total_items), n)
+
+                balanced_syn_data = synthetic_dataset
+                balanced_real_data = Subset(self.real_dataset, sampled_indices)
+            elif(real_data_len < syn_data_len):
+                # real data is smaller, trim the synthetic data to have the length of real data
+                
+                n = real_data_len  
+                total_items = syn_data_len
+                sampled_indices = random.sample(range(total_items), n)
+
+                balanced_syn_data = Subset(synthetic_dataset, sampled_indices)
+                balanced_real_data = self.real_dataset
+            else:
+                balanced_syn_data = synthetic_dataset
+                balanced_real_data = self.real_dataset
 
         # create dataset for pMSE training.  
-        dataset = pMSEDataset(real_dataset=self.real_dataset, 
-                                    synthetic_dataset=synthetic_dataset)
+        dataset = pMSEDataset(real_dataset=balanced_real_data, 
+                                    synthetic_dataset=balanced_syn_data)
         
         total_size = len(dataset)
         train_size = int(0.8 * total_size)  
@@ -181,6 +204,7 @@ class pMSEEvaluator:
         predicted_probs = np.concatenate(predicted_probs, axis=0)
 
         accuracy = torch.sum(predicted_labels == target_labels) / target_labels.size(0)
+        accuracy = accuracy.numpy()
         #auc = roc_auc_score(target_labels.cpu().numpy(), predicted_probs)
         test_loss = np.mean(losses)
         return {

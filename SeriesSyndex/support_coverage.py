@@ -126,7 +126,10 @@ class SupportCoverageEvaluator:
 #                 print(unique)
                 counts[(unique[unique<=self.num_bins]) - 1] += counts_per_bucket[unique<=self.num_bins]
 
-                temporal_vars_counts[f'temporal_var_{i}'] = counts 
+                if f'temporal_var_{i}' in temporal_vars_counts:
+                    temporal_vars_counts[f'temporal_var_{i}'] += counts 
+                else:
+                    temporal_vars_counts[f'temporal_var_{i}'] = counts 
             num_batches_processed += 1
             if self.max_batches and (num_batches_processed >= self.max_batches):
                 break

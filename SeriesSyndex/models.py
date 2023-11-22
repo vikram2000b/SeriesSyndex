@@ -23,7 +23,7 @@ class LSTMRegressor(nn.Module):
         return self.fc(hidden_state[-1])
     
 class TCNClassifier(nn.Module):
-    def __init__(self, input_size, num_channels, kernel_size, num_layers, dropout = 0.5):
+    def __init__(self, input_size, num_channels, kernel_size, num_layers, dropout = 0.5, dilation_factor=2):
         '''
         Contruct the Temporal CNN Classifier.
         Args:
@@ -35,10 +35,11 @@ class TCNClassifier(nn.Module):
 
         super(TCNClassifier, self).__init__()
         layers = []
-        for _ in range(num_layers):
+        for i in range(num_layers):
+            dilation_size = dilation_factor ** i
             layers.extend(
                 [
-                    nn.Conv1d(input_size, num_channels, kernel_size, padding=(kernel_size - 1) // 2),
+                    nn.Conv1d(input_size, num_channels, kernel_size, padding = (kernel_size-1)*dilation_size, dilation=dilation_size),#, padding=(kernel_size - 1) // 2),
                     nn.ELU(),
                     nn.Dropout(dropout),
                 ]
@@ -57,7 +58,7 @@ class TCNClassifier(nn.Module):
 
 
 class TCNRegressor(nn.Module):
-    def __init__(self, input_size, num_channels, kernel_size, num_layers, dropout = 0.5):
+    def __init__(self, input_size, num_channels, kernel_size, num_layers, dropout = 0.5, dilation_factor=2):
         '''
         Contruct the Temporal CNN Classifier.
         Args:
@@ -69,10 +70,11 @@ class TCNRegressor(nn.Module):
 
         super(TCNRegressor, self).__init__()
         layers = []
-        for _ in range(num_layers):
+        for i in range(num_layers):
+            dilation_size = dilation_factor ** i
             layers.extend(
                 [
-                    nn.Conv1d(input_size, num_channels, kernel_size, padding=(kernel_size - 1) // 2),
+                    nn.Conv1d(input_size, num_channels, kernel_size, padding = (kernel_size-1)*dilation_size, dilation=dilation_size), #padding=(kernel_size - 1) // 2,
                     nn.ELU(),
                     nn.Dropout(dropout),
                 ]
